@@ -5,7 +5,9 @@
         "malloc.h": "c",
         "string.h": "c",
         "fileopen.h": "c",
-        "vector.h": "c"
+        "vector.h": "c",
+        "raylib.h": "c",
+        "stdarg.h": "c"
     },
     "C_Cpp.default.compilerPath": "cl.exe"
 }

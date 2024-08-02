@@ -185,6 +185,60 @@ void umb_delete(UMB* umb)
     }
 }
 
+//Mesh umb_object_to_mesh(UMBObject* object)
+//{
+//    Mesh mesh;
+//
+//    if (object->numKeyFrames > 0)
+//    {
+//        UMBFrame* frame = &(object->frames[0]);
+//
+//        mesh.triangleCount = frame->numFaces;
+//        mesh.indices = frame->indices;
+//
+//        mesh.vertexCount = frame->numVertices;
+//        
+//        mesh.vertices = (float*)malloc(sizeof(float) * frame->numVertices * 3);
+//        mesh.normals = (float*)malloc(sizeof(float) * frame->numVertices * 3);
+//
+//        for (int i = 0; i < frame->numVertices * 3; i+=3)
+//        {
+//            Vector3 convertedVertex = umb_vector3_to_vector3(frame->vertices[i / 3]);
+//            Vector3 convertedNormal = umb_vector3_to_vector3(frame->normals[i / 3]);
+//
+//            mesh.vertices[i] = convertedVertex.x;
+//            mesh.vertices[i + 1] = convertedVertex.x;
+//            mesh.vertices[i + 2] = convertedVertex.x;
+//
+//            mesh.normals[i] = convertedNormal.x;
+//            mesh.normals[i + 1] = convertedNormal.x;
+//            mesh.normals[i + 2] = convertedNormal.x;
+//        }
+//
+//        if (frame->numTextures > 0)
+//        {
+//            mesh.texcoords = (float*)frame->textures;
+//        }
+//
+//        if (frame->numColors > 0)
+//        {
+//            mesh.colors = (unsigned char*)malloc(sizeof(unsigned char) * frame->numColors * 3);
+//
+//            for (int i = 0; i < frame->numColors * 3; i+=3)
+//            {
+//                Color32 color = frame->colors[i / 3];
+//
+//                mesh.colors[i] = color.r;
+//                mesh.colors[i + 1] = color.g;
+//                mesh.colors[i + 2] = color.b;
+//                mesh.colors[i + 3] = 255;
+//            }
+//        }
+//    }
+//
+//    return mesh;
+//}
+
 Vector3 umb_vector3_to_vector3(UMBVector3 vector)
 {
     Vector3 vec3;
