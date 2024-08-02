@@ -1,10 +1,11 @@
+#pragma once
 #include <stdio.h>
-#include <Stream.h>
+#include <FileStream.h>
 #include <malloc.h>
 
 typedef struct
 {
-    void* buf;
+    char* buf;
 
     size_t size;
 } File;
@@ -26,8 +27,21 @@ File* open_file(const char* path)
     openFile->size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    openFile->buf = malloc(openFile->size + 1);
-    fread(openFile->buf, openFile->size, 1, file);
+    openFile->buf = (char*)malloc(openFile->size + 1);
+    fread(openFile->buf, sizeof(char), openFile->size, file);
 
     return openFile;
+}
+
+void file_close(File* file)
+{
+    if (file != NULL)
+    {
+        if (file->buf != NULL)
+        {
+            free(file->buf);
+        }
+
+        free(file);
+    }
 }

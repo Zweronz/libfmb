@@ -2,6 +2,10 @@
     "files.associations": {
         ".fantomasignore": "ignore",
         "stream.h": "c",
-        "malloc.h": "c"
-    }
+        "malloc.h": "c",
+        "string.h": "c",
+        "fileopen.h": "c",
+        "vector.h": "c"
+    },
+    "C_Cpp.default.compilerPath": "cl.exe"
 }

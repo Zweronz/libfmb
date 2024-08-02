@@ -4,8 +4,7 @@
             "name": "Win32",
             "includePath": [
                 "${default}",
-                "${workspaceFolder}",
-                "D:/ceeplusplus/mingw64/include/isl"
+                "${workspaceFolder}/include"
             ],
             "defines": [
                 "_DEBUG",

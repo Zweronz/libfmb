@@ -1,16 +1,16 @@
 #pragma once
 #include <stdio.h>
 #include <stdint.h>
+#include <stdbool.h>
 
-//why
 typedef struct
 {
-    void* ptr, *file;
+    char* ptr;
     
-    size_t size;
+    size_t pos, size;
 } Stream;
 
-Stream* stream_open(void* ptr, size_t size);
+Stream* stream_open(char* ptr, size_t size);
 
 void stream_close(Stream* stream);
 
@@ -18,12 +18,14 @@ void stream_advance (Stream* stream, size_t amt);
 
 char* stream_string(Stream* stream);
 
-uint8_t stream_byte(Stream* stream);
-
 short stream_short(Stream* stream);
 
 int stream_int(Stream* stream);
 
 float stream_float(Stream* stream);
 
-void* stream_data(Stream* stream);
+void* stream_data(Stream* stream, size_t size);
+
+bool stream_short_bool(Stream* stream);
+
+void stream_debug(Stream* stream);

@@ -1,19 +1,21 @@
 
 #include <stdio.h>
-#include <Stream.h>
+#include <FileStream.h>
 #include <FileOpen.h>
+#include <UMB.h>
 
 int main()
 {
     File* file = open_file("test");
     Stream* stream = stream_open(file->buf, file->size);
 
-    printf("%d", file->size);
+    file_close(file);
 
-    stream_advance(stream, 8);
+    UMB* umb = umb_from_stream(stream);
+    umb_delete(umb);
+
     stream_close(stream);
-
-    free(file);
+    printf("ran successfully!!");
 
     return 0;
 }
