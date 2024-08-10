@@ -1,4 +1,4 @@
-#include <UMB.h>
+#include "umb.h"
 #include <malloc.h>
 
 UMB* umb_from_stream(Stream* stream)
@@ -14,17 +14,17 @@ UMB* umb_from_stream(Stream* stream)
         umb->materials[i].texturePath = stream_string(stream);
         umb->materials[i].textureBase = stream_string(stream);
 
-        Color* ambient = (Color*)stream_data(stream, sizeof(Color));
+        OpaqueColor* ambient = (OpaqueColor*)stream_data(stream, sizeof(OpaqueColor));
         umb->materials[i].ambient = *ambient;
 
         free(ambient);
 
-        Color* diffuse = (Color*)stream_data(stream, sizeof(Color));
+        OpaqueColor* diffuse = (OpaqueColor*)stream_data(stream, sizeof(OpaqueColor));
         umb->materials[i].diffuse = *diffuse;
 
         free(diffuse);
 
-        Color* specular = (Color*)stream_data(stream, sizeof(Color));
+        OpaqueColor* specular = (OpaqueColor*)stream_data(stream, sizeof(OpaqueColor));
         umb->materials[i].specular = *specular;
 
         free(specular);
@@ -65,14 +65,14 @@ UMB* umb_from_stream(Stream* stream)
 
             if (frame->numTextures > 0 && !frame->usePreviousTextureData)
             {
-                frame->textures = (Vector2*)stream_data(stream, sizeof(Vector2) * frame->numTextures);
+                frame->textures = (Vec2*)stream_data(stream, sizeof(Vec2) * frame->numTextures);
             }
 
             frame->numColors = stream_int(stream);
 
             if (frame->numColors > 0 && !frame->usePreviousTextureData)
             {
-                frame->colors = (Color32*)stream_data(stream, sizeof(Color32) * frame->numColors);
+                frame->colors = (OpaqueColor32*)stream_data(stream, sizeof(OpaqueColor32) * frame->numColors);
             }
 
             frame->numVertices = stream_int(stream);
@@ -185,63 +185,96 @@ void umb_delete(UMB* umb)
     }
 }
 
-//Mesh umb_object_to_mesh(UMBObject* object)
-//{
-//    Mesh mesh;
-//
-//    if (object->numKeyFrames > 0)
-//    {
-//        UMBFrame* frame = &(object->frames[0]);
-//
-//        mesh.triangleCount = frame->numFaces;
-//        mesh.indices = frame->indices;
-//
-//        mesh.vertexCount = frame->numVertices;
-//        
-//        mesh.vertices = (float*)malloc(sizeof(float) * frame->numVertices * 3);
-//        mesh.normals = (float*)malloc(sizeof(float) * frame->numVertices * 3);
-//
-//        for (int i = 0; i < frame->numVertices * 3; i+=3)
-//        {
-//            Vector3 convertedVertex = umb_vector3_to_vector3(frame->vertices[i / 3]);
-//            Vector3 convertedNormal = umb_vector3_to_vector3(frame->normals[i / 3]);
-//
-//            mesh.vertices[i] = convertedVertex.x;
-//            mesh.vertices[i + 1] = convertedVertex.x;
-//            mesh.vertices[i + 2] = convertedVertex.x;
-//
-//            mesh.normals[i] = convertedNormal.x;
-//            mesh.normals[i + 1] = convertedNormal.x;
-//            mesh.normals[i + 2] = convertedNormal.x;
-//        }
-//
-//        if (frame->numTextures > 0)
-//        {
-//            mesh.texcoords = (float*)frame->textures;
-//        }
-//
-//        if (frame->numColors > 0)
-//        {
-//            mesh.colors = (unsigned char*)malloc(sizeof(unsigned char) * frame->numColors * 3);
-//
-//            for (int i = 0; i < frame->numColors * 3; i+=3)
-//            {
-//                Color32 color = frame->colors[i / 3];
-//
-//                mesh.colors[i] = color.r;
-//                mesh.colors[i + 1] = color.g;
-//                mesh.colors[i + 2] = color.b;
-//                mesh.colors[i + 3] = 255;
-//            }
-//        }
-//    }
-//
-//    return mesh;
-//}
-
-Vector3 umb_vector3_to_vector3(UMBVector3 vector)
+Mesh* umb_to_meshes(UMB* umb)
 {
-    Vector3 vec3;
+    Mesh* models = (Mesh*)malloc(sizeof(Mesh) * umb->numObjects);
+
+    for (int i = 0; i < umb->numObjects; i++)
+    {
+        models[i] = umb_object_to_mesh(&(umb->objects[i]));
+    }
+}
+
+Mesh umb_object_to_mesh(UMBObject* object)
+{
+    Mesh mesh;
+
+    if (object->numKeyFrames > 0)
+    {
+        UMBFrame* frame = &(object->frames[0]);
+
+        mesh.triangleCount = frame->numFaces;
+        mesh.indices = (unsigned short*)malloc(sizeof(unsigned short) * frame->numFaces * 3);
+
+        for (int i = 0; i < frame->numFaces * 3; i++)
+        {
+            mesh.indices[i] = frame->indices[i];
+        }
+
+        mesh.vertexCount = frame->numVertices;
+        
+        mesh.vertices = (float*)malloc(sizeof(float) * frame->numVertices * 3);
+        mesh.normals = (float*)malloc(sizeof(float) * frame->numVertices * 3);
+
+        int index = 0;
+
+        for (int i = 0; i < frame->numVertices; i++)
+        {
+            Vec3 convertedVertex = umb_vector3_to_vector3(frame->vertices[i]);
+            Vec3 convertedNormal = umb_vector3_to_vector3(frame->normals[i]);
+
+            mesh.vertices[index] = convertedVertex.x;
+            mesh.vertices[index + 1] = convertedVertex.x;
+            mesh.vertices[index + 2] = convertedVertex.x;
+
+            mesh.normals[index] = convertedNormal.x;
+            mesh.normals[index + 1] = convertedNormal.x;
+            mesh.normals[index + 2] = convertedNormal.x;
+
+            index += 3;
+        }
+
+        if (frame->numTextures > 0)
+        {
+            mesh.texcoords = (float*)malloc(sizeof(float) * frame->numTextures * 2);
+
+            int textureIndex = 0;
+
+            for (int i = 0; i < frame->numTextures; i++)
+            {
+                mesh.texcoords[textureIndex] = frame->textures[i].x;
+                mesh.texcoords[textureIndex + 1] = frame->textures[i].y;
+
+                textureIndex += 2;
+            }
+        }
+
+        if (frame->numColors > 0)
+        {
+            mesh.colors = (unsigned char*)malloc(sizeof(unsigned char) * frame->numColors * 3);
+
+            int colorIndex = 0;
+
+            for (int i = 0; i < frame->numColors; i++)
+            {
+                OpaqueColor32 color = frame->colors[i];
+
+                mesh.colors[colorIndex] = color.r;
+                mesh.colors[colorIndex + 1] = color.g;
+                mesh.colors[colorIndex + 2] = color.b;
+                mesh.colors[colorIndex + 3] = 255;
+
+                colorIndex += 4;
+            }
+        }
+    }
+
+    return mesh;
+}
+
+Vec3 umb_vector3_to_vector3(UMBVector3 vector)
+{
+    Vec3 vec3;
 
     vec3.x = vector.x;
     vec3.y = vector.y;

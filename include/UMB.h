@@ -1,8 +1,8 @@
 #pragma once
-#include <Vector.h>
+#include "filestream.h"
+#include "vector.h"
 #include <stdbool.h>
-#include <FileStream.h>
-//#include <raylib.h>
+#include <raylib.h>
 
 typedef struct
 {
@@ -21,11 +21,11 @@ typedef struct
 
     int numTextures;
 
-    Vector2* textures;
+    Vec2* textures;
 
     int numColors;
 
-    Color32* colors;
+    OpaqueColor32* colors;
 
     int numVertices;
 
@@ -45,7 +45,7 @@ typedef struct
 
     bool hasTexture;
 
-    Color ambient, diffuse, specular;
+    OpaqueColor ambient, diffuse, specular;
 
     float glossiness;
 } UMBMaterial;
@@ -61,7 +61,7 @@ typedef struct
     UMBObject* objects;
 } UMB;
 
-Vector3 umb_vector3_to_vector3(UMBVector3 vector);
+Vec3 umb_vector3_to_vector3(UMBVector3 vector);
 
 UMB* umb_from_stream(Stream* stream);
 
@@ -69,3 +69,6 @@ void umb_delete(UMB* umb);
 
 char* ptr_from_umb(UMB* umb);
 
+Mesh umb_object_to_mesh(UMBObject* object);
+
+Mesh* umb_to_meshes(UMB* umb);

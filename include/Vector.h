@@ -4,29 +4,29 @@
 typedef struct
 {
     float x, y, z;
-} Vector3;
+} Vec3;
 
 typedef struct
 {
     float x, y;
-} Vector2;
+} Vec2;
 
 typedef struct
 {
     short x, y, z;
-} HalfVector3;
+} HalfVec3;
 
 typedef struct
 {
     short x, y, z;
-} HalfVector2;
+} HalfVec2;
 
 typedef struct
 {
     float r, g, b;
-} Color;
+} OpaqueColor;
 
 typedef struct
 {
     byte r, g, b;
-} Color32;
+} OpaqueColor32;

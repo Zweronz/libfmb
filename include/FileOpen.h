@@ -1,6 +1,5 @@
 #pragma once
 #include <stdio.h>
-#include <FileStream.h>
 #include <malloc.h>
 
 typedef struct
@@ -10,7 +9,7 @@ typedef struct
     size_t size;
 } File;
 
-File* open_file(const char* path)
+File* file_open(const char* path)
 {
     FILE* file = fopen(path, "rb");
 

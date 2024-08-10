@@ -1,7 +1,17 @@
-#include "FileStream.h"
+#include "filestream.h"
+#include "fileopen.h"
+#include "umb.h"
 #include <string.h>
 #include <malloc.h>
-#include <UMB.h>
+
+Stream* stream_create(const char* path)
+{
+    File* file = file_open(path);
+    Stream* stream = stream_open(file->buf, file->size);
+
+    file_close(file);
+    return stream;
+}
 
 Stream* stream_open(char* ptr, size_t size)
 {

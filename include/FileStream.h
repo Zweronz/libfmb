@@ -10,6 +10,8 @@ typedef struct
     size_t pos, size;
 } Stream;
 
+Stream* stream_create(const char* path);
+
 Stream* stream_open(char* ptr, size_t size);
 
 void stream_close(Stream* stream);
