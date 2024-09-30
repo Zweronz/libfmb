@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define STREAM_ARR(t, l) (t*)stream_data(stream, sizeof(t) * l)
+#define STREAM_DATA(t) (t*)stream_data(stream, sizeof(t))
+#define ALLOC(t, l) (t*)malloc(sizeof(t) * l)
+
 typedef struct
 {
     char* ptr;

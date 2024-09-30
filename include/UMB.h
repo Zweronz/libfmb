@@ -2,7 +2,6 @@
 #include "filestream.h"
 #include "vector.h"
 #include <stdbool.h>
-#include <raylib.h>
 
 typedef struct
 {
@@ -68,7 +67,3 @@ UMB* umb_from_stream(Stream* stream);
 void umb_delete(UMB* umb);
 
 char* ptr_from_umb(UMB* umb);
-
-Mesh umb_object_to_mesh(UMBObject* object);
-
-Mesh* umb_to_meshes(UMB* umb);
