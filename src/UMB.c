@@ -1,88 +1,85 @@
-#include "umb.h"
+#include <umb.h>
 #include <malloc.h>
+#include <common.h>
 
 UMB* umb_from_stream(Stream* stream)
 {
-    UMB* umb = (UMB*)malloc(sizeof(UMB));
+    UMB* umb = ALLOC_DATA(UMB);
 
-    umb->numMaterials = stream_int(stream);
-    umb->materials = ALLOC(UMBMaterial, umb->numMaterials);
+    STREAM_VAL(numMaterials, int);
+    umb->materials = ALLOC_ARR(UMBMaterial, umb->numMaterials);
 
-    for (int i = 0; i < umb->numMaterials; i++)
+    FOR (umb->numMaterials)
     {
-        umb->materials[i].name = stream_string(stream);
-        umb->materials[i].texturePath = stream_string(stream);
-        umb->materials[i].textureBase = stream_string(stream);
+        #define NEXT_STRING(v) umb->materials[i].v = stream_string(stream);
 
-        OpaqueColor* ambient = STREAM_DATA(OpaqueColor);
-        umb->materials[i].ambient = *ambient;
+        NEXT_STRING(name);
+        NEXT_STRING(texturePath);
+        NEXT_STRING(textureBase);
 
-        free(ambient);
+        #define NEXT_COLOR(cl) OpaqueColor* cl = STREAM_DATA(OpaqueColor); umb->materials[i].cl = *cl; free(cl)
 
-        OpaqueColor* diffuse = STREAM_DATA(OpaqueColor);
-        umb->materials[i].diffuse = *diffuse;
-
-        free(diffuse);
-
-        OpaqueColor* specular = STREAM_DATA(OpaqueColor);
-        umb->materials[i].specular = *specular;
-
-        free(specular);
+        NEXT_COLOR(ambient);
+        NEXT_COLOR(diffuse);
+        NEXT_COLOR(specular);
 
         umb->materials[i].glossiness = stream_float(stream);
     }
 
-    umb->numObjects = stream_int(stream);
-    umb->objects = ALLOC(UMBObject, umb->numObjects);
+    STREAM_VAL(numObjects, int);
+    umb->objects = ALLOC_ARR(UMBObject, umb->numObjects);
 
-    for (int i = 0; i < umb->numObjects; i++)
+    FOR (umb->numObjects)
     {
         UMBObject* object = &(umb->objects[i]);
+        #define NEXT_DATA(v, t) object->v = stream_##t(stream)
 
-        object->materialIndex = stream_int(stream);
-        object->numKeyFrames = stream_int(stream);
-        object->numAnimationFrames = stream_int(stream);
+        NEXT_DATA(materialIndex, int);
+        NEXT_DATA(numKeyFrames, int);
+        NEXT_DATA(numAnimationFrames, int);
 
-        object->frames = ALLOC(UMBFrame, object->numKeyFrames);
+        object->frames = ALLOC_ARR(UMBFrame, object->numKeyFrames);
 
-        for (int j = 0; j < object->numKeyFrames; j++)
+        FOR_N (j, object->numKeyFrames)
         {
             UMBFrame* frame = &(object->frames[j]);
 
-            frame->number = stream_int(stream);
+            #define FRAME_DATA(v, t) frame->v = stream_##t(stream)
 
-            frame->usePreviousIndexData = stream_short_bool(stream);
-            frame->usePreviousTextureData = stream_short_bool(stream);
+            FRAME_DATA(number, int);
 
-            frame->numFaces = stream_int(stream);
+            FRAME_DATA(usePreviousIndexData, short_bool);
+            FRAME_DATA(usePreviousTextureData, short_bool);
+
+            FRAME_DATA(numFaces, int);
 
             if (frame->numFaces > 0 && !frame->usePreviousIndexData)
             {
                 frame->indices = STREAM_ARR(unsigned short, frame->numFaces * 3);
             }
 
-            frame->numTextures = stream_int(stream);
+            FRAME_DATA(numTextures, int);
 
             if (frame->numTextures > 0 && !frame->usePreviousTextureData)
             {
                 frame->textures = STREAM_ARR(Vec2, frame->numTextures);
             }
 
-            frame->numColors = stream_int(stream);
+            FRAME_DATA(numColors, int);
 
             if (frame->numColors > 0 && !frame->usePreviousTextureData)
             {
                 frame->colors = STREAM_ARR(OpaqueColor32, frame->numColors);
             }
 
-            frame->numVertices = stream_int(stream);
+            FRAME_DATA(numVertices, int);
 
             if (frame->numVertices > 0)
             {
-                frame->vertices = ALLOC(UMBVector3, frame->numVertices);
-                frame->normals = ALLOC(UMBVector3, frame->numVertices);
+                frame->vertices = ALLOC_ARR(UMBVector3, frame->numVertices);
+                frame->normals = ALLOC_ARR(UMBVector3, frame->numVertices);
 
-                for (int k = 0; k < frame->numVertices; k++)
+                FOR_N (k, frame->numVertices)
                 {
                     //why did you have to interleave the vertices and normals?? it could have been FASTER!!!!!
 
@@ -185,15 +182,4 @@ void umb_delete(UMB* umb)
 
         free(umb);
     }
-}
-
-Vec3 umb_vector3_to_vector3(UMBVector3 vector)
-{
-    Vec3 vec3;
-
-    vec3.x = vector.x;
-    vec3.y = vector.y;
-    vec3.z = -vector.z;
-    
-    return vec3;
 }

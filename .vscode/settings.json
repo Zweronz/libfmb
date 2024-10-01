@@ -7,7 +7,8 @@
         "fileopen.h": "c",
         "vector.h": "c",
         "raylib.h": "c",
-        "stdarg.h": "c"
+        "stdarg.h": "c",
+        "common.h": "c"
     },
     "C_Cpp.default.compilerPath": "cl.exe"
 }

@@ -1,15 +1,14 @@
 
 #include <stdio.h>
 #include <filestream.h>
-#include "umb.h"
+#include <fmb.h>
 
 int main()
 {
-    //engine_init();
-    Stream* stream = stream_create("dog.umb");
+    Stream* stream = stream_create("main_menu.fmb");
 
-    UMB* umb = umb_from_stream(stream);
-    umb_delete(umb);
+    FMB* fmb = fmb_from_stream(stream);
+    fmb_delete(fmb);
 
     stream_close(stream);
     printf("ran successfully!!");

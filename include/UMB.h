@@ -1,7 +1,9 @@
 #pragma once
-#include "filestream.h"
-#include "vector.h"
+#include <filestream.h>
+#include <vector.h>
 #include <stdbool.h>
+
+#define STREAM_VAL(v, t) umb->v = stream_##t(stream)
 
 typedef struct
 {
@@ -59,8 +61,6 @@ typedef struct
 
     UMBObject* objects;
 } UMB;
-
-Vec3 umb_vector3_to_vector3(UMBVector3 vector);
 
 UMB* umb_from_stream(Stream* stream);
 

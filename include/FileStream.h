@@ -5,7 +5,9 @@
 
 #define STREAM_ARR(t, l) (t*)stream_data(stream, sizeof(t) * l)
 #define STREAM_DATA(t) (t*)stream_data(stream, sizeof(t))
-#define ALLOC(t, l) (t*)malloc(sizeof(t) * l)
+#define ALLOC_ARR(t, l) (t*)malloc(sizeof(t) * l)
+#define ALLOC_DATA(t) (t*)malloc(sizeof(t))
+#define ADVANCE(n) stream_advance(stream, n)
 
 typedef struct
 {
