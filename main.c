@@ -1,14 +1,14 @@
 
 #include <stdio.h>
 #include <filestream.h>
-#include <fmb.h>
+#include <fmb2.h>
 
 int main()
 {
-    Stream* stream = stream_create("main_menu.fmb");
+    Stream* stream = stream_create("hero_aphid.fmb2");
 
-    FMB* fmb = fmb_from_stream(stream);
-    fmb_delete(fmb);
+    FMB2* fmb2 = fmb2_from_stream(stream);
+    fmb2_delete(fmb2);
 
     stream_close(stream);
     printf("ran successfully!!");

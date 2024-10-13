@@ -2,11 +2,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <malloc.h>
 
 #define STREAM_ARR(t, l) (t*)stream_data(stream, sizeof(t) * l)
 #define STREAM_DATA(t) (t*)stream_data(stream, sizeof(t))
-#define ALLOC_ARR(t, l) (t*)malloc(sizeof(t) * l)
-#define ALLOC_DATA(t) (t*)malloc(sizeof(t))
 #define ADVANCE(n) stream_advance(stream, n)
 
 typedef struct
@@ -22,7 +21,7 @@ Stream* stream_open(char* ptr, size_t size);
 
 void stream_close(Stream* stream);
 
-void stream_advance (Stream* stream, size_t amt);
+void stream_advance(Stream* stream, size_t amt);
 
 char* stream_string(Stream* stream);
 

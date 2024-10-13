@@ -1,7 +1,7 @@
 #include <fmb.h>
 #include <common.h>
 
-FMBDataType numToDataType(int num)
+FMBDataType num_to_data_type(int num)
 {
     switch (num)
     {
@@ -14,7 +14,7 @@ FMBDataType numToDataType(int num)
     }
 }
 
-int dataSize(FMBDataType dataType)
+int data_size(FMBDataType dataType)
 {
     switch (dataType)
     {
@@ -31,10 +31,10 @@ FMB* fmb_from_stream(Stream* stream)
 {
     ADVANCE(4);
 
-    FMB* fmb = ALLOC_DATA(FMB);
+    FMB* fmb = (FMB*)malloc(sizeof(FMB));
     STREAM_VAL(version, float);
 
-    #define NEXT_TYPE(s) fmb->s = dataSize(numToDataType(stream_int(stream)))
+    #define NEXT_TYPE(s) fmb->s = data_size(num_to_data_type(stream_int(stream)))
 
     NEXT_TYPE(indexDataSize); NEXT_TYPE(vertexDataSize);
     NEXT_TYPE(normalDataSize); NEXT_TYPE(textureDataSize);
@@ -48,7 +48,7 @@ FMB* fmb_from_stream(Stream* stream)
     STREAM_VAL(numFrames, int);
     STREAM_VAL(numMaterials, int);
 
-    fmb->materials = ALLOC_ARR(FMBMaterial, fmb->numMaterials);
+    fmb->materials = (FMBMaterial*)calloc(fmb->numMaterials, sizeof(FMBMaterial));
 
     FOR (fmb->numMaterials)
     {
@@ -67,7 +67,7 @@ FMB* fmb_from_stream(Stream* stream)
     }
 
     STREAM_VAL(numObjects, int);
-    fmb->objects = ALLOC_ARR(FMBObject, fmb->numObjects);
+    fmb->objects = (FMBObject*)calloc(fmb->numObjects, sizeof(FMBObject));
 
     FOR (fmb->numObjects)
     {

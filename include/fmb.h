@@ -67,9 +67,9 @@ typedef struct
     Vec3* mins, *maxes;
 } FMB;
 
-FMBDataType numToDataType(int num);
+FMBDataType num_to_data_type(int num);
 
-int dataSize(FMBDataType dataType);
+int data_size(FMBDataType dataType);
 
 FMB* fmb_from_stream(Stream* stream);
 

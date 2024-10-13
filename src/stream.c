@@ -54,13 +54,13 @@ void stream_advance(Stream* stream, size_t amt)
 {
     if (stream == NULL || stream->ptr == NULL)
     {
-        printf("invalid stream!");
+        printf("invalid stream!\n");
         return;
     }
 
     if (stream->pos + amt > stream->size)
     {
-        printf("attempted to read past size!");
+        printf("attempted to read past size!\n");
         return;
     }
 

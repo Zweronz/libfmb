@@ -14,3 +14,4 @@
 #define FOR_N_R_F(i, l, h, f) for (int i = l; i < h; f)
 
 #define FREE(p) if (p != NULL) free(p)
+#define COMMA ,

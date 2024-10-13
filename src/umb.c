@@ -4,10 +4,10 @@
 
 UMB* umb_from_stream(Stream* stream)
 {
-    UMB* umb = ALLOC_DATA(UMB);
+    UMB* umb = (UMB*)malloc(sizeof(UMB));
 
     STREAM_VAL(numMaterials, int);
-    umb->materials = ALLOC_ARR(UMBMaterial, umb->numMaterials);
+    umb->materials = (UMBMaterial*)calloc(umb->numMaterials, sizeof(UMBMaterial));
 
     FOR (umb->numMaterials)
     {
@@ -27,7 +27,7 @@ UMB* umb_from_stream(Stream* stream)
     }
 
     STREAM_VAL(numObjects, int);
-    umb->objects = ALLOC_ARR(UMBObject, umb->numObjects);
+    umb->objects = (UMBObject*)calloc(umb->numObjects, sizeof(UMBObject));
 
     FOR (umb->numObjects)
     {
@@ -38,7 +38,7 @@ UMB* umb_from_stream(Stream* stream)
         NEXT_DATA(numKeyFrames, int);
         NEXT_DATA(numAnimationFrames, int);
 
-        object->frames = ALLOC_ARR(UMBFrame, object->numKeyFrames);
+        object->frames = (UMBFrame*)calloc(object->numKeyFrames, sizeof(UMBFrame));
 
         FOR_N (j, object->numKeyFrames)
         {
@@ -76,8 +76,8 @@ UMB* umb_from_stream(Stream* stream)
 
             if (frame->numVertices > 0)
             {
-                frame->vertices = ALLOC_ARR(UMBVector3, frame->numVertices);
-                frame->normals = ALLOC_ARR(UMBVector3, frame->numVertices);
+                frame->vertices = (UMBVector3*)calloc(frame->numVertices, sizeof(UMBVector3));
+                frame->normals = (UMBVector3*)calloc(frame->numVertices, sizeof(UMBVector3));
 
                 FOR_N (k, frame->numVertices)
                 {
@@ -96,40 +96,23 @@ UMB* umb_from_stream(Stream* stream)
         }
     }
 
-    printf("finished reading\n");
-
     return umb;
 }
 
 void umb_frame_delete(UMBFrame frame)
 {
-    if (frame.numFaces > 0)
-    {
-        free(frame.indices);
-    }
-
-    if (frame.numTextures > 0)
-    {
-        free(frame.textures);
-    }
-
-    if (frame.numColors > 0)
-    {
-        free(frame.colors);
-    }
-
-    if (frame.numVertices > 0)
-    {
-        free(frame.vertices);
-        free(frame.normals);
-    }
+    FREE(frame.indices);
+    FREE(frame.textures);
+    FREE(frame.colors);
+    FREE(frame.vertices);
+    FREE(frame.normals);
 }
 
 void umb_object_delete(UMBObject object)
 {
     if (object.numKeyFrames > 0)
     {
-        for (int i = 0; i < object.numKeyFrames; i++)
+        FOR (object.numKeyFrames)
         {
             umb_frame_delete(object.frames[i]);
         }
@@ -140,20 +123,9 @@ void umb_object_delete(UMBObject object)
 
 void umb_material_delete(UMBMaterial material)
 {
-    if (material.name != NULL)
-    {
-        free(material.name);
-    }
-
-    if (material.texturePath != NULL)
-    {
-        free(material.texturePath);
-    }
-
-    if (material.textureBase != NULL)
-    {
-        free(material.textureBase);
-    }
+    FREE(material.name);
+    FREE(material.texturePath);
+    FREE(material.textureBase);
 }
 
 void umb_delete(UMB* umb)
@@ -162,7 +134,7 @@ void umb_delete(UMB* umb)
     {
         if (umb->numMaterials > 0)
         {
-            for (int i = 0; i < umb->numMaterials; i++)
+            FOR (umb->numMaterials)
             {
                 umb_material_delete(umb->materials[i]);
             }
@@ -172,7 +144,7 @@ void umb_delete(UMB* umb)
 
         if (umb->numObjects > 0)
         {
-            for (int i = 0; i < umb->numObjects; i++)
+            FOR (umb->numObjects)
             {
                 umb_object_delete(umb->objects[i]);
             }
