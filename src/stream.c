@@ -2,6 +2,7 @@
 #include <fileopen.h>
 #include <string.h>
 #include <malloc.h>
+#include <common.h>
 
 Stream* stream_create(const char* path)
 {
@@ -41,10 +42,7 @@ void stream_close(Stream* stream)
 {
     if (stream != NULL)
     {
-        if (stream->ptr != NULL)
-        {
-            free(stream->ptr);
-        }
+        FREE(stream->ptr);
 
         free(stream);
     }

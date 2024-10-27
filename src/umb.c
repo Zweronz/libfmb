@@ -4,12 +4,14 @@
 
 UMB* umb_from_stream(Stream* stream)
 {
+    #define STREAM_VAL(v, t) umb->v = stream_##t(stream)
+
     UMB* umb = (UMB*)malloc(sizeof(UMB));
 
     STREAM_VAL(numMaterials, int);
-    umb->materials = (UMBMaterial*)calloc(umb->numMaterials, sizeof(UMBMaterial));
+    umb->materials = CALLOC(UMBMaterial, umb->numMaterials);
 
-    FOR (umb->numMaterials)
+    FOREACH (i, umb->numMaterials)
     {
         #define NEXT_STRING(v) umb->materials[i].v = stream_string(stream);
 
@@ -17,19 +19,23 @@ UMB* umb_from_stream(Stream* stream)
         NEXT_STRING(texturePath);
         NEXT_STRING(textureBase);
 
+        #undef NEXT_STRING
+
         #define NEXT_COLOR(cl) OpaqueColor* cl = STREAM_DATA(OpaqueColor); umb->materials[i].cl = *cl; free(cl)
 
         NEXT_COLOR(ambient);
         NEXT_COLOR(diffuse);
         NEXT_COLOR(specular);
 
+        #undef NEXT_COLOR
+
         umb->materials[i].glossiness = stream_float(stream);
     }
 
     STREAM_VAL(numObjects, int);
-    umb->objects = (UMBObject*)calloc(umb->numObjects, sizeof(UMBObject));
+    umb->objects = CALLOC(UMBObject, umb->numObjects);
 
-    FOR (umb->numObjects)
+    FOREACH (i, umb->numObjects)
     {
         UMBObject* object = &(umb->objects[i]);
         #define NEXT_DATA(v, t) object->v = stream_##t(stream)
@@ -38,9 +44,9 @@ UMB* umb_from_stream(Stream* stream)
         NEXT_DATA(numKeyFrames, int);
         NEXT_DATA(numAnimationFrames, int);
 
-        object->frames = (UMBFrame*)calloc(object->numKeyFrames, sizeof(UMBFrame));
+        object->frames = CALLOC(UMBFrame, object->numKeyFrames);
 
-        FOR_N (j, object->numKeyFrames)
+        FOREACH (j, object->numKeyFrames)
         {
             UMBFrame* frame = &(object->frames[j]);
 
@@ -76,10 +82,10 @@ UMB* umb_from_stream(Stream* stream)
 
             if (frame->numVertices > 0)
             {
-                frame->vertices = (UMBVector3*)calloc(frame->numVertices, sizeof(UMBVector3));
-                frame->normals = (UMBVector3*)calloc(frame->numVertices, sizeof(UMBVector3));
+                frame->vertices = CALLOC(UMBVector3, frame->numVertices);
+                frame->normals = CALLOC(UMBVector3, frame->numVertices);
 
-                FOR_N (k, frame->numVertices)
+                FOREACH (k, frame->numVertices)
                 {
                     //why did you have to interleave the vertices and normals?? it could have been FASTER!!!!!
 
@@ -93,8 +99,14 @@ UMB* umb_from_stream(Stream* stream)
                     free(normal);
                 }
             }
+
+            #undef FRAME_DATA
         }
+
+        #undef NEXT_DATA
     }
+
+    #undef STREAM_VAL
 
     return umb;
 }
@@ -112,7 +124,7 @@ void umb_object_delete(UMBObject object)
 {
     if (object.numKeyFrames > 0)
     {
-        FOR (object.numKeyFrames)
+        FOREACH (i, object.numKeyFrames)
         {
             umb_frame_delete(object.frames[i]);
         }
@@ -134,7 +146,7 @@ void umb_delete(UMB* umb)
     {
         if (umb->numMaterials > 0)
         {
-            FOR (umb->numMaterials)
+            FOREACH (i, umb->numMaterials)
             {
                 umb_material_delete(umb->materials[i]);
             }
@@ -144,7 +156,7 @@ void umb_delete(UMB* umb)
 
         if (umb->numObjects > 0)
         {
-            FOR (umb->numObjects)
+            FOREACH (i, umb->numObjects)
             {
                 umb_object_delete(umb->objects[i]);
             }

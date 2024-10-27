@@ -3,7 +3,20 @@
 #include <filestream.h>
 #include <malloc.h>
 
-#define STREAM_VAL(v, t) fmb->v = stream_##t(stream)
+//Foursaken Model Binary
+
+//Known games
+
+//Bug Heroes
+//Bug Heroes Quest
+
+//Known versions
+
+//1.0
+//1.1
+//1.2
+
+//Header: fmb\0
 
 typedef struct
 {
@@ -45,7 +58,7 @@ typedef struct
 
 typedef enum
 {
-    BYTE, UNSIGNED_BYTE, SHORT, UNSIGNED_SHORT, FLOAT
+    FMB_BYTE, FMB_UNSIGNED_BYTE, FMB_SHORT, FMB_UNSIGNED_SHORT, FMB_FLOAT
 } FMBDataType;
 
 typedef struct
@@ -66,10 +79,6 @@ typedef struct
 
     Vec3* mins, *maxes;
 } FMB;
-
-FMBDataType num_to_data_type(int num);
-
-int data_size(FMBDataType dataType);
 
 FMB* fmb_from_stream(Stream* stream);
 

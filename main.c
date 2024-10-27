@@ -1,17 +1,14 @@
 
 #include <stdio.h>
-#include <filestream.h>
-#include <fmb2.h>
+#include <loader.h>
+#include <common.h>
 
-int main()
+int main(int argc, char** argv)
 {
-    Stream* stream = stream_create("hero_aphid.fmb2");
+    Model* model = load_model("enemy_ladybug.fmb2");
+    delete_model(model);
 
-    FMB2* fmb2 = fmb2_from_stream(stream);
-    fmb2_delete(fmb2);
-
-    stream_close(stream);
-    printf("ran successfully!!");
+    debug("ran successfully");
 
     return 0;
 }

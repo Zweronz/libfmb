@@ -1,16 +1,18 @@
 #include <fmb.h>
 #include <common.h>
 
+#define STREAM_VAL(v, t) fmb->v = stream_##t(stream)
+
 FMBDataType num_to_data_type(int num)
 {
     switch (num)
     {
-        case 5120: return BYTE;
-		case 5121: return UNSIGNED_BYTE;
-		case 5122: return SHORT;
-		case 5123: return UNSIGNED_SHORT;
+        case 5120: return FMB_BYTE;
+		case 5121: return FMB_UNSIGNED_BYTE;
+		case 5122: return FMB_SHORT;
+		case 5123: return FMB_UNSIGNED_SHORT;
 
-		default: return FLOAT;
+		default: return FMB_FLOAT;
     }
 }
 
@@ -18,19 +20,15 @@ int data_size(FMBDataType dataType)
 {
     switch (dataType)
     {
-        case BYTE: case UNSIGNED_BYTE:   return 1;
-        case SHORT: case UNSIGNED_SHORT: return 2;
+        case FMB_BYTE:  case FMB_UNSIGNED_BYTE:   return 1;
+        case FMB_SHORT: case FMB_UNSIGNED_SHORT:  return 2;
         
         default: return 4;
     }
 }
 
-#define printl(t) printf(t "\n")
-
 FMB* fmb_from_stream(Stream* stream)
 {
-    ADVANCE(4);
-
     FMB* fmb = (FMB*)malloc(sizeof(FMB));
     STREAM_VAL(version, float);
 
@@ -40,6 +38,8 @@ FMB* fmb_from_stream(Stream* stream)
     NEXT_TYPE(normalDataSize); NEXT_TYPE(textureDataSize);
     NEXT_TYPE(colorDataSize);
 
+    #undef NEXT_TYPE
+
     STREAM_VAL(offset, float);
     STREAM_VAL(scale, float);
 
@@ -48,9 +48,9 @@ FMB* fmb_from_stream(Stream* stream)
     STREAM_VAL(numFrames, int);
     STREAM_VAL(numMaterials, int);
 
-    fmb->materials = (FMBMaterial*)calloc(fmb->numMaterials, sizeof(FMBMaterial));
+    fmb->materials = CALLOC(FMBMaterial, fmb->numMaterials);
 
-    FOR (fmb->numMaterials)
+    FOREACH (i, fmb->numMaterials)
     {
         FMBMaterial* material = &(fmb->materials[i]);
 
@@ -63,13 +63,15 @@ FMB* fmb_from_stream(Stream* stream)
         NEXT_COLOR(diffuse);
         NEXT_COLOR(specular);
 
+        #undef NEXT_COLOR
+
         material->glossiness = stream_float(stream);
     }
 
     STREAM_VAL(numObjects, int);
-    fmb->objects = (FMBObject*)calloc(fmb->numObjects, sizeof(FMBObject));
+    fmb->objects = CALLOC(FMBObject, fmb->numObjects);
 
-    FOR (fmb->numObjects)
+    FOREACH (i, fmb->numObjects)
     {
         FMBObject* object = &(fmb->objects[i]);
 
@@ -93,18 +95,22 @@ FMB* fmb_from_stream(Stream* stream)
 
         object->vertices = STREAM_ARR(char, object->numVertices * 3 * fmb->vertexDataSize * (lastFrame->verticesOffset + 1));
 
-        if (object->hasNormals)     object->normals = STREAM_ARR(char, object->numVertices * 3 * fmb->normalDataSize * (lastFrame->verticesOffset + 1));
+        if (object->hasNormals)     object->normals  = STREAM_ARR(char, object->numVertices * 3 * fmb->normalDataSize * (lastFrame->verticesOffset + 1));
         if (object->hasTextures)    object->textures = STREAM_ARR(char, object->numVertices * 2 * fmb->textureDataSize);
-        if (object->hasColors)      object->colors = STREAM_ARR(char, object->numVertices * 4 * fmb->colorDataSize);
+        if (object->hasColors)      object->colors   = STREAM_ARR(char, object->numVertices * 4 * fmb->colorDataSize);
 
         object->centers = STREAM_ARR(Vec3, object->numKeyFrames);
         object->radiuses = STREAM_ARR(float, object->numKeyFrames);
 
         object->keyFrameLookUp = STREAM_ARR(short, (fmb->numFrames + 1));
+
+        #undef NEXT_DATA
     }
 
     fmb->mins = STREAM_ARR(Vec3, fmb->numFrames);
     fmb->maxes = STREAM_ARR(Vec3, fmb->numFrames);
+
+    #undef STREAM_VAL
 
     return fmb;
 }
@@ -137,7 +143,7 @@ void fmb_delete(FMB* fmb)
     {
         if (fmb->numMaterials > 0)
         {
-            FOR (fmb->numMaterials)
+            FOREACH (i, fmb->numMaterials)
             {
                 fmb_material_delete(fmb->materials[i]);
             }
@@ -147,7 +153,7 @@ void fmb_delete(FMB* fmb)
 
         if (fmb->numObjects > 0)
         {
-            FOR (fmb->numObjects)
+            FOREACH (i, fmb->numObjects)
             {
                 fmb_object_delete(fmb->objects[i]);
             }

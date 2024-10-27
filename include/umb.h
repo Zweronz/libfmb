@@ -3,7 +3,17 @@
 #include <vector.h>
 #include <stdbool.h>
 
-#define STREAM_VAL(v, t) umb->v = stream_##t(stream)
+//Unison Model Binary
+
+//Known games
+
+//New York Zombies
+
+//Known versions
+
+//N\A
+
+//Header: N\A
 
 typedef struct
 {

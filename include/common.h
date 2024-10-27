@@ -1,17 +1,16 @@
 #pragma once
 #include <string.h>
+#include <malloc.h>
 
-#define FOR(n) for (int i = 0; i < n; i++)
-#define FOR_N(i, n) for (int i = 0; i < n; i++)
-
-#define FOR_R(l, h) for (int i = l; i < h; i++)
-#define FOR_N_R(i, l, h) for (int i = l; i < h; i++)
-
-#define FOR_F(n, f) for (int i = 0; i < n; f)
-#define FOR_N_F(i, n, f) for (int i = 0; i < n; f)
-
-#define FOR_R_F(l, h, f) for (int i = l; i < h; f)
-#define FOR_N_R_F(i, l, h, f) for (int i = l; i < h; f)
-
+#define FOREACH(n, l) for (int n = 0; n < l; n++)
+#define CALLOC(t, l) (t*)calloc(l, sizeof(t))
 #define FREE(p) if (p != NULL) free(p)
-#define COMMA ,
+
+#define DEBUG
+
+inline void debug(const char* str)
+{
+#ifdef DEBUG
+    printf(str);
+#endif
+}

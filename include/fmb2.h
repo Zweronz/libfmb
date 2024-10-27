@@ -42,7 +42,20 @@ typedef struct
 
 typedef struct
 {
-    void* idk;
+    int numFrames;
+
+    unsigned short* frameLookUp;
+
+    float* radiuses;
+
+    Vec3* mins, *maxes, *centers;
+
+    
+} FMB2ObjectBounds;
+
+typedef struct
+{
+    FMB2ObjectBounds* bounds;
 } FMB2Bnds;
 
 typedef struct
@@ -59,9 +72,14 @@ typedef struct
     FMB2Dummy* dummies;
 } FMB2Dums;
 
-typedef struct 
+typedef struct
 {
     unsigned short* indices;
+} FMB2ObjectFaces;
+
+typedef struct 
+{
+    FMB2ObjectFaces* faces;
 } FMB2Face;
 
 typedef struct
