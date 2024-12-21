@@ -1,12 +1,12 @@
 #pragma once
 #include <vector.h>
 
-typedef enum
+typedef enum FMADataType
 {
     FMA_BYTE = 2, FMA_UNSIGNED_BYTE = 3, FMA_SHORT = 4, FMA_UNSIGNED_SHORT = 5, FMA_FIXED = 6, FMA_FLOAT = 7
 } FMADataType;
 
-typedef struct
+typedef struct FMAMaterial
 {
     char* name, texture;
 
@@ -15,7 +15,7 @@ typedef struct
     float glossiness;
 } FMAMaterial;
 
-typedef struct
+typedef struct FMA
 {
     float version;
 

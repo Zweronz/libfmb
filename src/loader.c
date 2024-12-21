@@ -8,7 +8,7 @@ void delete_model(Model* model)
 {
     if (model != NULL)
     {
-        #define IMPL_MODEL(mod, ext) case ext##_EXT: mod##_delete((ext*)model->ptr)
+        #define IMPL_MODEL(mod, ext) case ext##_EXT: mod##_delete((ext*)model->ptr); break
 
         switch (model->header)
         {
@@ -26,14 +26,14 @@ void delete_model(Model* model)
 
 Model* load_model(const char* path)
 {
-    debug("loading model");
+    debug("loading model\n");
 
     Stream* stream = stream_create(path);
     
     Model* model = (Model*)malloc(sizeof(Model));
     model->header = stream_int(stream);
 
-    #define IMPL_MODEL(mod, ext) case ext##_EXT: debug("model is type " # ext); model->ptr = mod##_from_stream(stream)
+    #define IMPL_MODEL(mod, ext) case ext##_EXT: debug("model is type " # ext "\n"); model->ptr = mod##_from_stream(stream); break
 
     switch (model->header)
     {
@@ -41,7 +41,7 @@ Model* load_model(const char* path)
         IMPL_MODEL(fmb2, FMB2);
 
         default:
-            debug("model is type UMB");
+            debug("model is type UMB\n");
             stream->pos = 0;
             model->ptr = umb_from_stream(stream); //umb has no header!
     }

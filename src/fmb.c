@@ -34,7 +34,7 @@ FMB* fmb_from_stream(Stream* stream)
 
     #define NEXT_TYPE(s) fmb->s = data_size(num_to_data_type(stream_int(stream)))
 
-    NEXT_TYPE(indexDataSize); NEXT_TYPE(vertexDataSize);
+    NEXT_TYPE(indexDataSize);  NEXT_TYPE(vertexDataSize);
     NEXT_TYPE(normalDataSize); NEXT_TYPE(textureDataSize);
     NEXT_TYPE(colorDataSize);
 
@@ -95,9 +95,9 @@ FMB* fmb_from_stream(Stream* stream)
 
         object->vertices = STREAM_ARR(char, object->numVertices * 3 * fmb->vertexDataSize * (lastFrame->verticesOffset + 1));
 
-        if (object->hasNormals)     object->normals  = STREAM_ARR(char, object->numVertices * 3 * fmb->normalDataSize * (lastFrame->verticesOffset + 1));
-        if (object->hasTextures)    object->textures = STREAM_ARR(char, object->numVertices * 2 * fmb->textureDataSize);
-        if (object->hasColors)      object->colors   = STREAM_ARR(char, object->numVertices * 4 * fmb->colorDataSize);
+        if (object->hasNormals)  object->normals  = STREAM_ARR(char, object->numVertices * 3 * fmb->normalDataSize * (lastFrame->verticesOffset + 1));
+        if (object->hasTextures) object->textures = STREAM_ARR(char, object->numVertices * 2 * fmb->textureDataSize);
+        if (object->hasColors)   object->colors   = STREAM_ARR(char, object->numVertices * 4 * fmb->colorDataSize);
 
         object->centers = STREAM_ARR(Vec3, object->numKeyFrames);
         object->radiuses = STREAM_ARR(float, object->numKeyFrames);

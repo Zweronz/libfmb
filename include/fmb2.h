@@ -1,23 +1,23 @@
 #pragma once
 #include <vector.h>
-#include <filestream.h>
+#include <fmstream.h>
 #include <common.h>
 #include <stdbool.h>
 
-typedef enum
+typedef enum FMB2VertexChannelType
 {
     UVChannel0, UVChannel1, UVChannel2, UVChannel3, 
     Position, Normal, Tangent, Binormal, Color
 } FMB2VertexChannelType;
 
-typedef struct
+typedef struct FMB2VertexChannel
 {
     FMB2VertexChannelType exportedType;
 
     int dataType, dataSize, components, offsets;
 } FMB2VertexChannel;
 
-typedef struct
+typedef struct FMB2Object
 {
     char* name;
 
@@ -26,7 +26,7 @@ typedef struct
     FMB2VertexChannel* vertexChannels;
 } FMB2Object;
 
-typedef struct
+typedef struct FMB2Data
 {
     float offset, scale;
 
@@ -35,12 +35,12 @@ typedef struct
     FMB2Object* objects;
 } FMB2Data;
 
-typedef struct
+typedef struct FMB2Anim
 {
     unsigned short* keyFrameLookUp;
 } FMB2Anim;
 
-typedef struct
+typedef struct FMB2ObjectBounds
 {
     int numFrames;
 
@@ -49,69 +49,67 @@ typedef struct
     float* radiuses;
 
     Vec3* mins, *maxes, *centers;
-
-    
 } FMB2ObjectBounds;
 
-typedef struct
+typedef struct FMB2Bnds
 {
     FMB2ObjectBounds* bounds;
 } FMB2Bnds;
 
-typedef struct
+typedef struct FMB2Dummy
 {
     char* name;
 
     Vec3* positions, *rotations;
 } FMB2Dummy;
 
-typedef struct
+typedef struct FMB2Dums
 {
     int numDummies;
 
     FMB2Dummy* dummies;
 } FMB2Dums;
 
-typedef struct
+typedef struct FMB2ObjectFaces
 {
     unsigned short* indices;
 } FMB2ObjectFaces;
 
-typedef struct 
+typedef struct FMB2Face
 {
     FMB2ObjectFaces* faces;
 } FMB2Face;
 
-typedef struct
+typedef struct FMB2ObjectChannel
 {
     char* vertexData;
 
     unsigned short* frameLookUp;
 } FMB2ObjectChannel;
 
-typedef struct
+typedef struct FMB2VertexData
 {
     FMB2ObjectChannel* channels;
 } FMB2VertexData;
 
-typedef struct
+typedef struct FMB2Chnd
 {
     FMB2VertexData* data;
 } FMB2Chnd;
 
-typedef struct
+typedef struct FMB2Bone
 {
     void* idk;
 } FMB2Bone;
 
-typedef struct
+typedef struct FMB2Chunk
 {
     int label;
 
     size_t length;
 } FMB2Chunk;
 
-typedef struct
+typedef struct FMB2
 {
     float version;
 
@@ -132,7 +130,7 @@ typedef struct
     FMB2Bone bone;
 } FMB2;
 
-typedef enum
+typedef enum FMB2ChunkType
 {
     DATA = 1635017060, //int32 of bytes for 'data'
     ANIM = 1835626081, //int32 of bytes for 'anim'
@@ -143,22 +141,8 @@ typedef enum
     BONE = 1701736290, //int32 of bytes for 'bone'
 } FMB2ChunkType;
 
-FMB2* fmb2_from_stream(Stream* stream);
+EXPORT FMB2* fmb2_from_stream(Stream* stream);
 
-void fmb2_delete(FMB2* fmb2);
+EXPORT void fmb2_delete(FMB2* fmb2);
 
 char* ptr_from_fmb2(FMB2* fmb2);
-
-void fmb2_read_data(Stream* stream, FMB2* fmb2, size_t length);
-
-void fmb2_read_anim(Stream* stream, FMB2* fmb2, size_t length);
-
-void fmb2_read_bnds(Stream* stream, FMB2* fmb2, size_t length);
-
-void fmb2_read_dums(Stream* stream, FMB2* fmb2, size_t length);
-
-void fmb2_read_face(Stream* stream, FMB2* fmb2, size_t length);
-
-void fmb2_read_chnd(Stream* stream, FMB2* fmb2, size_t length);
-
-void fmb2_read_bone(Stream* stream, FMB2* fmb2, size_t length);

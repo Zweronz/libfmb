@@ -179,7 +179,7 @@ FMB2* fmb2_from_stream(Stream* stream)
         printf("fmb2 chunk count surpasses the chunk buffer (10), unexpected things may happen!\n");
     }
 
-    #define CASE(t, tl) case t: fmb2_read_##tl(stream, fmb2, chunks[i].length); printf(#tl " %zu %i\n", stream->pos, i); break
+    #define CASE(t, tl) case t: fmb2_read_##tl(stream, fmb2, chunks[i].length); break
 
     FOREACH (i, fmb2->chunkCount)
     {
@@ -204,5 +204,52 @@ FMB2* fmb2_from_stream(Stream* stream)
 
 void fmb2_delete(FMB2* fmb2)
 {
-    printf("do it later bro");
+    if (fmb2 != NULL)
+    {
+        if (fmb2->data.numObjects > 0)
+        {
+            FOREACH (i, fmb2->data.numObjects)
+            {
+                FREE(fmb2->data.objects[i].name);
+                FREE(fmb2->data.objects[i].vertexChannels);
+    
+                FREE(fmb2->bnds.bounds[i].frameLookUp);
+                FREE(fmb2->bnds.bounds[i].radiuses);
+    
+                FREE(fmb2->bnds.bounds[i].mins);
+                FREE(fmb2->bnds.bounds[i].maxes);
+                FREE(fmb2->bnds.bounds[i].centers);
+    
+                FREE(fmb2->face.faces[i].indices);
+    
+                FOREACH (j, fmb2->data.objects[i].numVertexChannels)
+                {
+                    FREE(fmb2->chnd.data[i].channels[j].frameLookUp);
+                    FREE(fmb2->chnd.data[i].channels[j].vertexData);
+                }
+    
+                FREE(fmb2->chnd.data[i].channels);
+            }
+    
+            FREE(fmb2->data.objects);
+            FREE(fmb2->face.faces);
+            FREE(fmb2->bnds.bounds);
+            FREE(fmb2->chnd.data);
+        }
+    
+        FREE(fmb2->anim.keyFrameLookUp);
+    
+        if (fmb2->dums.numDummies > 0)
+        {
+            FOREACH (i, fmb2->dums.numDummies)
+            {
+                FREE(fmb2->dums.dummies[i].name);
+    
+                FREE(fmb2->dums.dummies[i].positions);
+                FREE(fmb2->dums.dummies[i].rotations);
+            }
+        }
+    
+        FREE(fmb2);
+    }
 }

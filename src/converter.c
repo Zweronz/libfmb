@@ -3,42 +3,6 @@
 
 UMB* fmb_to_umb(FMB* fmb)
 {
-    //CREATE_MODEL(umb, UMB);
-//
-    //umb->numMaterials = fmb->numMaterials;
-    //umb->materials = CALLOC(UMBMaterial, umb->numMaterials);
-//
-    //FOREACH (i, umb->numMaterials)
-    //{
-    //    COPY(umb, fmb, materials[i].ambient);
-    //    COPY(umb, fmb, materials[i].diffuse);
-    //    COPY(umb, fmb, materials[i].specular);
-    //    COPY(umb, fmb, materials[i].glossiness);
-//
-    //    int len = strlen(fmb->materials[i].texturePath);
-//
-    //    umb->materials[i].texturePath = malloc(len);
-    //    umb->materials[i].textureBase = malloc(len);
-    //    
-    //    memcpy(umb->materials[i].texturePath, fmb->materials[i].texturePath, len);
-    //    memcpy(umb->materials[i].textureBase, umb->materials[i].texturePath, len);
-    //    
-    //    int nameLen = strlen(fmb->materials[i].name);
-    //    umb->materials[i].name = malloc(nameLen);
-//
-    //    memcpy(umb->materials[i].name, fmb->materials[i].name, len);
-    //}
-//
-    //umb->numObjects = fmb->numObjects;
-    //umb->objects = CALLOC(UMBObject, umb->numObjects);
-//
-    //FOREACH(i, umb->numObjects)
-    //{
-    //    COPY(umb, fmb, objects[i].materialIndex);
-    //    COPY(umb, fmb, objects[i].numKeyFrames);
-    //    
-    //    umb->objects[i].numAnimationFrames = fmb->numFrames;
-    //}
     return NULL;
 }
 

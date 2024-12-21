@@ -13,7 +13,7 @@ UMB* umb_from_stream(Stream* stream)
 
     FOREACH (i, umb->numMaterials)
     {
-        #define NEXT_STRING(v) umb->materials[i].v = stream_string(stream);
+        #define NEXT_STRING(v) umb->materials[i].v = stream_string(stream)
 
         NEXT_STRING(name);
         NEXT_STRING(texturePath);
@@ -166,4 +166,42 @@ void umb_delete(UMB* umb)
 
         free(umb);
     }
+}
+
+size_t umb_calc_size(UMB* umb)
+{
+    size_t size = UMB_SIZE;
+
+    FOREACH (i, umb->numMaterials)
+    {
+        size += strlen(umb->materials[i].name) + 1;
+        size += strlen(umb->materials[i].texturePath) + 1;
+        size += strlen(umb->materials[i].textureBase) + 1;
+
+        size += UMB_MATERIAL_SIZE;
+    }
+
+    FOREACH (i, umb->numObjects)
+    {
+        FOREACH (j, umb->objects[i].numKeyFrames)
+        {
+            if (!umb->objects[i].frames[j].usePreviousIndexData)
+            {
+                size += sizeof(unsigned short) * umb->objects[i].frames[j].numFaces;
+            }
+
+            if (!umb->objects[i].frames[j].usePreviousTextureData)
+            {
+                size += sizeof(Vec2) * umb->objects[i].frames[j].numTextures;
+                size += sizeof(OpaqueColor32) * umb->objects[i].frames[j].numColors;
+            }
+
+            size += 24 /*vertex/normal pairs, better to not multiply it by two*/ * umb->objects[i].frames[j].numVertices;
+            size += UMB_FRAME_SIZE;
+        }
+
+        size += UMB_OBJECT_SIZE;
+    }
+
+    return size;
 }

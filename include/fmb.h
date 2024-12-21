@@ -1,7 +1,8 @@
 #pragma once
 #include <vector.h>
-#include <filestream.h>
+#include <fmstream.h>
 #include <malloc.h>
+#include <common.h>
 
 //Foursaken Model Binary
 
@@ -18,7 +19,7 @@
 
 //Header: fmb\0
 
-typedef struct
+typedef struct FMBMaterial
 {
     char* name, *texturePath;
 
@@ -27,12 +28,12 @@ typedef struct
     float glossiness;
 } FMBMaterial;
 
-typedef struct
+typedef struct FMBFrame
 {
     short index, frameNumber, verticesOffset;
 } FMBFrame;
 
-typedef struct
+typedef struct FMBObject
 {
     //most likely unused
     char* name;
@@ -56,12 +57,12 @@ typedef struct
     short* keyFrameLookUp;
 } FMBObject;
 
-typedef enum
+typedef enum FMBDataType
 {
     FMB_BYTE, FMB_UNSIGNED_BYTE, FMB_SHORT, FMB_UNSIGNED_SHORT, FMB_FLOAT
 } FMBDataType;
 
-typedef struct
+typedef struct FMB
 {
     float version;
 
@@ -80,8 +81,8 @@ typedef struct
     Vec3* mins, *maxes;
 } FMB;
 
-FMB* fmb_from_stream(Stream* stream);
+EXPORT FMB* fmb_from_stream(Stream* stream);
 
-void fmb_delete(FMB* fmb);
+EXPORT void fmb_delete(FMB* fmb);
 
 char* ptr_from_fmb(FMB* fmb);

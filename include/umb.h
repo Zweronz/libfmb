@@ -1,5 +1,5 @@
 #pragma once
-#include <filestream.h>
+#include <fmstream.h>
 #include <vector.h>
 #include <stdbool.h>
 
@@ -15,12 +15,17 @@
 
 //Header: N\A
 
-typedef struct
+#define UMB_FRAME_SIZE 24
+#define UMB_OBJECT_SIZE 12
+#define UMB_MATERIAL_SIZE 42
+#define UMB_SIZE 8
+
+typedef struct UMBVector3
 {
     float x, z, y;
 } UMBVector3;
 
-typedef struct
+typedef struct UMBFrame
 {
     int number;
 
@@ -43,14 +48,14 @@ typedef struct
     UMBVector3* vertices, *normals;
 } UMBFrame;
 
-typedef struct
+typedef struct UMBObject
 {
     int materialIndex, numKeyFrames, numAnimationFrames;
 
     UMBFrame* frames;
 } UMBObject;
 
-typedef struct
+typedef struct UMBMaterial
 {
     char* name, *texturePath, *textureBase;
 
@@ -61,7 +66,7 @@ typedef struct
     float glossiness;
 } UMBMaterial;
 
-typedef struct
+typedef struct UMB
 {
     int numMaterials;
 
@@ -77,3 +82,5 @@ UMB* umb_from_stream(Stream* stream);
 void umb_delete(UMB* umb);
 
 char* ptr_from_umb(UMB* umb);
+
+size_t umb_calc_size(UMB* umb);
