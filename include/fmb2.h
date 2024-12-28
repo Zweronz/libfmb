@@ -32,9 +32,9 @@ Foursaken Model Binary V2
 
     Known Versions
 
-        1.0  - SUPPORTED (see fmb2old)
-        1.01 - SUPPORTED (see fmb2old)
-        1.02 - SUPPORTED (see fmb2old)
+        1.0  - SUPPORTED
+        1.01 - SUPPORTED
+        1.02 - SUPPORTED
         1.03 - SUPPORTED
         1.1  - SUPPORTED
 
