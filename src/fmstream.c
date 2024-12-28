@@ -26,7 +26,7 @@ Stream* stream_open(char* ptr, size_t size)
     return stream;
 }
 
-Stream* stream_create(const char* path)
+Stream* stream_create(char* path)
 {
     File* file = file_open(path);
     Stream* stream = stream_open(file->buf, file->size);
@@ -49,14 +49,12 @@ void stream_advance(Stream* stream, size_t amt)
 {
     if (stream == NULL || stream->ptr == NULL)
     {
-        printf("invalid stream!\n");
-        return;
+        debug("invalid stream!\n");
     }
 
     if (stream->pos + amt > stream->size)
     {
-        printf("attempted to read past size!\n");
-        return;
+        debug("attempted to read past size!\n");
     }
 
     stream->pos += amt;
@@ -132,4 +130,10 @@ bool stream_short_bool(Stream* stream)
 void stream_debug(Stream* stream)
 {
     printf("pos: %zu size: %zu\n", stream->pos, stream->size);
+}
+
+void stream_write(char* buf, size_t* pos, void* data, size_t size)
+{
+    memcpy(buf + *pos, data, size);
+    *pos += size;
 }

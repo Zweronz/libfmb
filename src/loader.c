@@ -12,10 +12,17 @@ void delete_model(Model* model)
 
         switch (model->header)
         {
-            IMPL_MODEL(fmb,   FMB);
-            IMPL_MODEL(fmb2, FMB2);
+            case FMB_EXT:
+                fmb_delete((FMB*)model->ptr);
+                break;
 
-            default: umb_delete((UMB*)model->ptr); //umb has no header!
+            case FMB2_EXT:
+                fmb2_delete((FMB2*)model->ptr);
+                break;
+
+            case UMB_EXT:
+                umb_delete((UMB*)model->ptr);
+                break;
         }
 
         #undef IMPL_MODEL
@@ -24,7 +31,7 @@ void delete_model(Model* model)
     }
 }
 
-Model* load_model(const char* path)
+Model* load_model(char* path)
 {
     debug("loading model\n");
 
@@ -33,20 +40,37 @@ Model* load_model(const char* path)
     Model* model = (Model*)malloc(sizeof(Model));
     model->header = stream_int(stream);
 
-    #define IMPL_MODEL(mod, ext) case ext##_EXT: debug("model is type " # ext "\n"); model->ptr = mod##_from_stream(stream); break
+    printf("%zu\n", stream->size);
 
     switch (model->header)
     {
-        IMPL_MODEL(fmb,   FMB);
-        IMPL_MODEL(fmb2, FMB2);
+        case FMB_EXT:
+            debug("model is type FMB\n");
+
+            model->ptr = fmb_from_stream(stream);
+            model->version = ((FMB*)model->ptr)->version;
+
+            break;
+
+        case FMB2_EXT:
+            debug("model is type FMB2\n");
+
+            //skip null terminator on header
+            ADVANCE(1);
+
+            model->ptr = fmb2_from_stream(stream);
+
+            break;
 
         default:
             debug("model is type UMB\n");
+
             stream->pos = 0;
             model->ptr = umb_from_stream(stream); //umb has no header!
-    }
+            model->header = UMB_EXT;
 
-    #undef IMPL_MODEL
+            break;
+    }
 
     stream_close(stream);
 

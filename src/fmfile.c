@@ -1,12 +1,13 @@
 #include <fmfile.h>
+#include <common.h>
 
-File* file_open(const char* path)
+File* file_open(char* path)
 {
     FILE* file = fopen(path, "rb");
 
     if (!file)
     {
-        printf("error opening file");
+        debug("error opening file\n");
         return NULL;
     }
 
@@ -19,6 +20,8 @@ File* file_open(const char* path)
 
     openFile->buf = (char*)malloc(openFile->size + 1);
     fread(openFile->buf, sizeof(char), openFile->size, file);
+
+    fclose(file);
 
     return openFile;
 }

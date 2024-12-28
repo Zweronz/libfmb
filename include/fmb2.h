@@ -4,103 +4,51 @@
 #include <common.h>
 #include <stdbool.h>
 
+/*
+
+Foursaken Model Binary V2
+
+    Known Games
+
+        New York Zombies 2
+        Heroes and Castles
+        Block Fortress
+        Monster Adventures
+        Bug Heroes 2
+        Block Fortress: War
+        Phantom Rift
+        Puzzle to the Center of Earth
+        Heroes and Castles 2
+        All is Lost
+        War Tortoise
+        Adventure Company
+        Color Bots
+        Noblemen: 1896
+        Game of Gods
+        Block Fortress: Empires
+        War Tortoise 2
+        Magic vs Metal
+        Bug Heroes: Tower Defense
+
+    Known Versions
+
+        1.0  - SUPPORTED (see fmb2old)
+        1.01 - SUPPORTED (see fmb2old)
+        1.02 - SUPPORTED (see fmb2old)
+        1.03 - SUPPORTED
+        1.1  - SUPPORTED
+
+    Header: fmb2\0
+
+Status: UNTESTED
+
+*/
+
 typedef enum FMB2VertexChannelType
 {
     UVChannel0, UVChannel1, UVChannel2, UVChannel3, 
     Position, Normal, Tangent, Binormal, Color
 } FMB2VertexChannelType;
-
-typedef struct FMB2VertexChannel
-{
-    FMB2VertexChannelType exportedType;
-
-    int dataType, dataSize, components, offsets;
-} FMB2VertexChannel;
-
-typedef struct FMB2Object
-{
-    char* name;
-
-    int materialIndex, numFaces, numVertices, numKeyFrames, drawDataSize, numVertexChannels;
-
-    FMB2VertexChannel* vertexChannels;
-} FMB2Object;
-
-typedef struct FMB2Data
-{
-    float offset, scale;
-
-    int numMaterials, numObjects, numFrames, numKeyFrames;
-
-    FMB2Object* objects;
-} FMB2Data;
-
-typedef struct FMB2Anim
-{
-    unsigned short* keyFrameLookUp;
-} FMB2Anim;
-
-typedef struct FMB2ObjectBounds
-{
-    int numFrames;
-
-    unsigned short* frameLookUp;
-
-    float* radiuses;
-
-    Vec3* mins, *maxes, *centers;
-} FMB2ObjectBounds;
-
-typedef struct FMB2Bnds
-{
-    FMB2ObjectBounds* bounds;
-} FMB2Bnds;
-
-typedef struct FMB2Dummy
-{
-    char* name;
-
-    Vec3* positions, *rotations;
-} FMB2Dummy;
-
-typedef struct FMB2Dums
-{
-    int numDummies;
-
-    FMB2Dummy* dummies;
-} FMB2Dums;
-
-typedef struct FMB2ObjectFaces
-{
-    unsigned short* indices;
-} FMB2ObjectFaces;
-
-typedef struct FMB2Face
-{
-    FMB2ObjectFaces* faces;
-} FMB2Face;
-
-typedef struct FMB2ObjectChannel
-{
-    char* vertexData;
-
-    unsigned short* frameLookUp;
-} FMB2ObjectChannel;
-
-typedef struct FMB2VertexData
-{
-    FMB2ObjectChannel* channels;
-} FMB2VertexData;
-
-typedef struct FMB2Chnd
-{
-    FMB2VertexData* data;
-} FMB2Chnd;
-
-typedef struct FMB2Bone
-{
-    void* idk;
-} FMB2Bone;
 
 typedef struct FMB2Chunk
 {
@@ -109,25 +57,58 @@ typedef struct FMB2Chunk
     size_t length;
 } FMB2Chunk;
 
+typedef struct FMB2VertexChannel
+{
+    FMB2VertexChannelType exportedType;
+
+    int dataType, dataSize, numComponents, numOffsets;
+
+    char* data;
+
+    unsigned short* keyFrameToOffset;
+} FMB2VertexChannel;
+
+typedef struct FMB2Model
+{
+    char* name;
+
+    int materialIndex, faceGeomType, numFaces, numVertices, indexDataType, indexDataSize, numKeyFrames;
+
+    char* indices;
+
+    int numChannels;
+
+    FMB2VertexChannel* channels;
+
+    int numBoundingOffsets;
+
+    Vec4* boundingSpheres;
+
+    Vec3* mins, *maxes;
+
+    unsigned short* boundingOffsetToKeyFrame;
+} FMB2Model;
+
+typedef struct FMB2Dummy
+{
+    char* name, *frameData;
+} FMB2Dummy;
+
 typedef struct FMB2
 {
-    float version;
-
     int chunkCount;
 
-    FMB2Data data;
+    float version, offset, scale;
 
-    FMB2Anim anim;
+    int numKeyFrames, numFrames;
 
-    FMB2Bnds bnds;
+    unsigned short* frameToKeyFrame, *keyFrameToFrameNumber;
 
-    FMB2Dums dums;
+    int numMaterials, numModels, numDummies;
 
-    FMB2Face face;
+    FMB2Model* models;
 
-    FMB2Chnd chnd;
-
-    FMB2Bone bone;
+    FMB2Dummy* dummies;
 } FMB2;
 
 typedef enum FMB2ChunkType
@@ -141,8 +122,8 @@ typedef enum FMB2ChunkType
     BONE = 1701736290, //int32 of bytes for 'bone'
 } FMB2ChunkType;
 
-EXPORT FMB2* fmb2_from_stream(Stream* stream);
+FMB2* fmb2_from_stream(Stream* stream);
 
-EXPORT void fmb2_delete(FMB2* fmb2);
+void fmb2_delete(FMB2* fmb2);
 
 char* ptr_from_fmb2(FMB2* fmb2);

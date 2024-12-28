@@ -3,6 +3,8 @@
 #include <malloc.h>
 #include <stdio.h>
 
+#define DEBUG
+
 #define FOREACH(n, l) for (int n = 0; n < l; n++)
 #define CALLOC(t, l) (t*)calloc(l, sizeof(t))
 #define FREE(p) if (p != NULL) free(p)
@@ -12,7 +14,5 @@
 #else
     #define EXPORT __attribute__((visibility("default")))
 #endif
-
-#define DEBUG
 
 void debug(const char* str);

@@ -11,9 +11,11 @@ typedef struct Model
 {
     int header;
 
+    float version;
+
     void* ptr;
 } Model;
 
 EXPORT void delete_model(Model* model);
 
-EXPORT Model* load_model(const char* path);
+EXPORT Model* load_model(char* path);

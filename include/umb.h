@@ -3,17 +3,21 @@
 #include <vector.h>
 #include <stdbool.h>
 
-//Unison Model Binary
+/*
 
-//Known games
+Unison Model Binary
 
-//New York Zombies
+    Known Games
 
-//Known versions
+        New York Zombies - SUPPORTED
 
-//N\A
+    Known Versions: N\A
+    
+    Header: N\A
 
-//Header: N\A
+Status: DONE
+
+*/
 
 #define UMB_FRAME_SIZE 24
 #define UMB_OBJECT_SIZE 12

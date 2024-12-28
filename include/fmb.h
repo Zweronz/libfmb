@@ -4,20 +4,29 @@
 #include <malloc.h>
 #include <common.h>
 
-//Foursaken Model Binary
+/*
 
-//Known games
+    Foursaken Model Binary
 
-//Bug Heroes
-//Bug Heroes Quest
+        Known Games
 
-//Known versions
+            Bug Heroes       - SUPPORTED
+            Bug Heroes Quest - SUPPORTED
+            Food Ninja       - UNSUPPORTED (causes memory leak?)
+            Sky Gnomes       - SUPPORTED
 
-//1.0
-//1.1
-//1.2
+        Known Versions
 
-//Header: fmb\0
+            1.0             - UNSUPPORTED
+            1.1             - UNSUPPORTED
+            1.2             - UNSUPPORTED
+            100 (PUBLISHED) - SUPPORTED
+
+        Header: fmb\0
+
+Status: UNFINISHED
+
+*/
 
 typedef struct FMBMaterial
 {
@@ -66,6 +75,8 @@ typedef struct FMB
 {
     float version;
 
+    FMBDataType indexDataType, vertexDataType, normalDataType, textureDataType, colorDataType;
+
     int indexDataSize, vertexDataSize, normalDataSize, textureDataSize, colorDataSize;
 
     float offset, scale, inverseScale;
@@ -81,8 +92,8 @@ typedef struct FMB
     Vec3* mins, *maxes;
 } FMB;
 
-EXPORT FMB* fmb_from_stream(Stream* stream);
+FMB* fmb_from_stream(Stream* stream);
 
-EXPORT void fmb_delete(FMB* fmb);
+void fmb_delete(FMB* fmb);
 
 char* ptr_from_fmb(FMB* fmb);

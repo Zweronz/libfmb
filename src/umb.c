@@ -32,6 +32,8 @@ UMB* umb_from_stream(Stream* stream)
         umb->materials[i].glossiness = stream_float(stream);
     }
 
+    printf("materials: %zu", stream->pos);
+
     STREAM_VAL(numObjects, int);
     umb->objects = CALLOC(UMBObject, umb->numObjects);
 
@@ -181,13 +183,15 @@ size_t umb_calc_size(UMB* umb)
         size += UMB_MATERIAL_SIZE;
     }
 
+    printf("materials written: %zu", size);
+
     FOREACH (i, umb->numObjects)
     {
         FOREACH (j, umb->objects[i].numKeyFrames)
         {
             if (!umb->objects[i].frames[j].usePreviousIndexData)
             {
-                size += sizeof(unsigned short) * umb->objects[i].frames[j].numFaces;
+                size += sizeof(unsigned short) * umb->objects[i].frames[j].numFaces * 3;
             }
 
             if (!umb->objects[i].frames[j].usePreviousTextureData)

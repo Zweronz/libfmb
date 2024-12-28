@@ -4,6 +4,11 @@
 #include <common.h>
 #define LERP(x, y, t) (x + (y - x) * t)
 
+typedef struct Vec4
+{
+    float x, y, z, w;
+} Vec4;
+
 typedef struct Vec3
 {
     float x, y, z;

@@ -7,7 +7,7 @@
 
 int main(int argc, char** argv)
 {
-    Model* model = load_model((const char*)argv[1]);
+    Model* model = load_model(argv[1]);
     delete_model(model);
 
     debug("ran successfully");

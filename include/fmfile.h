@@ -9,5 +9,5 @@ typedef struct File
     size_t size;
 } File;
 
-File* file_open(const char* path);
+File* file_open(char* path);
 void file_close(File* file);

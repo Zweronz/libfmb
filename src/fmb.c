@@ -32,11 +32,11 @@ FMB* fmb_from_stream(Stream* stream)
     FMB* fmb = (FMB*)malloc(sizeof(FMB));
     STREAM_VAL(version, float);
 
-    #define NEXT_TYPE(s) fmb->s = data_size(num_to_data_type(stream_int(stream)))
+    #define NEXT_TYPE(s) fmb->s##Type = num_to_data_type(stream_int(stream)); fmb->s##Size = data_size(fmb->s##Type)
 
-    NEXT_TYPE(indexDataSize);  NEXT_TYPE(vertexDataSize);
-    NEXT_TYPE(normalDataSize); NEXT_TYPE(textureDataSize);
-    NEXT_TYPE(colorDataSize);
+    NEXT_TYPE(indexData);  NEXT_TYPE(vertexData);
+    NEXT_TYPE(normalData); NEXT_TYPE(textureData);
+    NEXT_TYPE(colorData);
 
     #undef NEXT_TYPE
 
