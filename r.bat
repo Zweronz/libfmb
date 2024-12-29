@@ -1,1 +1,0 @@
-g++ main.c "././src/*.c" -Wall -g -o fmreader.exe -I "./include/"
