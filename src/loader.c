@@ -40,8 +40,6 @@ Model* load_model(char* path)
     Model* model = (Model*)malloc(sizeof(Model));
     model->header = stream_int(stream);
 
-    printf("%zu\n", stream->size);
-
     switch (model->header)
     {
         case FMB_EXT:
