@@ -36,6 +36,7 @@ void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
         fmb2->models[i].numChannels   = stream_int(stream);
 
         fmb2->models[i].channels = CALLOC(FMB2VertexChannel, fmb2->models[i].numChannels);
+        fmb2->models[i].numBoundingOffsets = 0;
 
         FOREACH (j, fmb2->models[i].numChannels)
         {
@@ -49,11 +50,16 @@ void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
 
             fmb2->models[i].channels[j].data = (char*)stream_data(stream, fmb2->models[i].numVertices * fmb2->models[i].channels[j].dataSize * fmb2->models[i].channels[j].numComponents * fmb2->models[i].channels[j].numOffsets);
             fmb2->models[i].channels[j].keyFrameToOffset = STREAM_ARR(unsigned short, fmb2->numKeyFrames);
+
+            if (fmb2->models[i].channels[j].exportedType == Position)
+            {
+                fmb2->models[i].numBoundingOffsets = fmb2->models[i].channels[j].numOffsets;
+            }
         }
 
-        fmb2->models[i].boundingSpheres = STREAM_ARR(Vec4, fmb2->numKeyFrames);
-        fmb2->models[i].mins            = STREAM_ARR(Vec3, fmb2->numKeyFrames);
-        fmb2->models[i].maxes           = STREAM_ARR(Vec3, fmb2->numKeyFrames);
+        fmb2->models[i].boundingSpheres = STREAM_ARR(Vec4, fmb2->models[i].numBoundingOffsets);
+        fmb2->models[i].mins            = STREAM_ARR(Vec3, fmb2->models[i].numBoundingOffsets);
+        fmb2->models[i].maxes           = STREAM_ARR(Vec3, fmb2->models[i].numBoundingOffsets);
     }
 
 

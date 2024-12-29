@@ -59,6 +59,7 @@ Model* load_model(char* path)
             ADVANCE(1);
 
             model->ptr = fmb2_from_stream(stream);
+            model->version = ((FMB2*)model->ptr)->version;
 
             break;
 
