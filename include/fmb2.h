@@ -72,7 +72,7 @@ typedef struct FMB2Model
 {
     char* name;
 
-    int materialIndex, faceGeomType, numFaces, numVertices, indexDataType, indexDataSize, numKeyFrames;
+    int materialIndex, numFaces, numVertices, indexDataType, indexDataSize, numKeyFrames;
 
     char* indices;
 

@@ -10,10 +10,11 @@
 
         Known Games
 
-            Bug Heroes       - SUPPORTED
-            Bug Heroes Quest - SUPPORTED
-            Food Ninja       - UNSUPPORTED (causes memory leak?)
-            Sky Gnomes       - SUPPORTED
+            Bug Heroes                          - SUPPORTED
+            Bug Heroes Quest                    - SUPPORTED
+            Food Ninja                          - UNSUPPORTED
+            Sky Gnomes                          - SUPPORTED
+            New York Zombies 2 (very partially) - UNSUPPORTED
 
         Known Versions
 

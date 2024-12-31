@@ -23,7 +23,7 @@ void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
     {
         fmb2->models[i].name          = stream_string(stream);
 
-        fmb2->models[i].faceGeomType  = stream_int(stream);
+        fmb2->models[i].materialIndex = stream_int(stream);
         fmb2->models[i].numFaces      = stream_int(stream);
 
         fmb2->models[i].numVertices   = stream_int(stream);
@@ -49,6 +49,7 @@ void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
             fmb2->models[i].channels[j].numOffsets    = stream_int(stream);
 
             fmb2->models[i].channels[j].data = (char*)stream_data(stream, fmb2->models[i].numVertices * fmb2->models[i].channels[j].dataSize * fmb2->models[i].channels[j].numComponents * fmb2->models[i].channels[j].numOffsets);
+
             fmb2->models[i].channels[j].keyFrameToOffset = STREAM_ARR(unsigned short, fmb2->numKeyFrames);
 
             if (fmb2->models[i].channels[j].exportedType == Position)
@@ -71,11 +72,19 @@ void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
         FOREACH (i, fmb2->numDummies)
         {
             fmb2->dummies[i].name = stream_string(stream);
-            fmb2->dummies[i].frameData = (char*)stream_data(stream, 24 * fmb2->numKeyFrames); //24 = Vec3 pos, Vec3 rot
+
+            if (fmb2->version >= 1.02f)
+            {
+                fmb2->dummies[i].frameData = (char*)stream_data(stream, 24 * fmb2->numKeyFrames); //24 = Vec3 pos, Vec3 rot
+            }
+            else
+            {
+                fmb2->dummies[i].frameData = (char*)stream_data(stream, sizeof(Vec3) * fmb2->numKeyFrames);
+            }
         }
     }
 
-    //4 bytes of padding (00 00 00 00) at the bottom of the file??
+    //4 bytes of padding (00 00 00 00) at the bottom of the file?? (sometimes)
 }
 
 void fmb2_read_data(Stream* stream, FMB2* fmb2, size_t length)
