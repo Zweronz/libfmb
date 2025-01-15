@@ -1,5 +1,4 @@
 #include <fmstream.h>
-#include <cstring>
 
 Stream* stream_open(char* ptr, size_t size)
 {
