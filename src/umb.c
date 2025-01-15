@@ -82,22 +82,7 @@ UMB* umb_from_stream(Stream* stream)
 
             if (frame->numVertices > 0)
             {
-                frame->vertices = CALLOC(UMBVector3, frame->numVertices);
-                frame->normals = CALLOC(UMBVector3, frame->numVertices);
-
-                FOREACH (k, frame->numVertices)
-                {
-                    //why did you have to interleave the vertices and normals?? it could have been FASTER!!!!!
-
-                    UMBVector3* vertex = STREAM_DATA(UMBVector3);
-                    UMBVector3* normal = STREAM_DATA(UMBVector3);
-
-                    frame->vertices[k] = *vertex;
-                    frame->normals[k] = *normal;
-
-                    free(vertex);
-                    free(normal);
-                }
+                frame->vertex = STREAM_ARR(UMBVertex, frame->numVertices);
             }
 
             #undef FRAME_DATA
@@ -116,8 +101,7 @@ void umb_frame_delete(UMBFrame frame)
     FREE(frame.indices);
     FREE(frame.textures);
     FREE(frame.colors);
-    FREE(frame.vertices);
-    FREE(frame.normals);
+    FREE(frame.vertex);
 }
 
 void umb_object_delete(UMBObject object)

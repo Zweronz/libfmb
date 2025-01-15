@@ -29,6 +29,11 @@ typedef struct UMBVector3
     float x, z, y;
 } UMBVector3;
 
+typedef struct UMBVertex
+{
+    UMBVector3 vertex, normal;
+} UMBVertex;
+
 typedef struct UMBFrame
 {
     int number;
@@ -49,7 +54,7 @@ typedef struct UMBFrame
 
     int numVertices;
 
-    UMBVector3* vertices, *normals;
+    UMBVertex* vertex;
 } UMBFrame;
 
 typedef struct UMBObject
