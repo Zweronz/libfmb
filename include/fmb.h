@@ -1,29 +1,28 @@
 #pragma once
 #include <vector.h>
-#include <fmstream.h>
-#include <malloc.h>
 #include <common.h>
+#include <stdint.h>
 
 /*
 
-    Foursaken Model Binary
+Foursaken Model Binary
 
-        Known Games
+    Known Games
 
-            Bug Heroes                          - SUPPORTED
-            Bug Heroes Quest                    - SUPPORTED
-            Food Ninja                          - UNSUPPORTED
-            Sky Gnomes                          - SUPPORTED
-            New York Zombies 2 (very partially) - UNSUPPORTED
+        Bug Heroes                          - SUPPORTED
+        Bug Heroes Quest                    - SUPPORTED
+        Food Ninja                          - UNSUPPORTED
+        Sky Gnomes                          - SUPPORTED
+        New York Zombies 2 (very partially) - UNSUPPORTED
 
-        Known Versions
+    Known Versions
 
-            1.0             - UNSUPPORTED
-            1.1             - UNSUPPORTED
-            1.2             - UNSUPPORTED
-            100 (PUBLISHED) - SUPPORTED
+        1.0             - UNSUPPORTED
+        1.1             - UNSUPPORTED
+        1.2             - UNSUPPORTED
+        100 (PUBLISHED) - SUPPORTED
 
-        Header: fmb\0
+    Header: fmb\0
 
 Status: UNFINISHED
 
@@ -40,7 +39,7 @@ typedef struct FMBMaterial
 
 typedef struct FMBFrame
 {
-    short index, frameNumber, verticesOffset;
+    int16_t index, frameNumber, verticesOffset;
 } FMBFrame;
 
 typedef struct FMBObject
@@ -48,23 +47,27 @@ typedef struct FMBObject
     //most likely unused
     char* name;
 
-    int materialIndex;
+    int32_t materialIndex;
 
-    bool hasNormals, hasTextures, hasColors;
+    uint16_t hasNormals, hasTextures, hasColors;
 
-    int numKeyFrames;
+    int32_t numKeyFrames;
 
     FMBFrame* frames;
 
-    int numFaces, numVertices;
+    int32_t numFaces;
 
-    char* indices, *vertices, *normals, *textures, *colors;
+    uint8_t* indices;
+
+    int32_t numVertices;
+
+    uint8_t* vertices, *normals, *textures, *colors;
 
     Vec3* centers;
 
     float* radiuses;
 
-    short* keyFrameLookUp;
+    uint16_t* keyFrameLookUp;
 } FMBObject;
 
 typedef enum FMBDataType
@@ -78,23 +81,27 @@ typedef struct FMB
 
     FMBDataType indexDataType, vertexDataType, normalDataType, textureDataType, colorDataType;
 
-    int indexDataSize, vertexDataSize, normalDataSize, textureDataSize, colorDataSize;
+    int32_t indexDataSize, vertexDataSize, normalDataSize, textureDataSize, colorDataSize;
 
-    float offset, scale, inverseScale;
+    float offset, scale;
 
-    int numFrames, numMaterials;
+    int32_t numFrames, numMaterials;
+
+    float inverseScale;
 
     FMBMaterial* materials;
 
-    int numObjects;
+    int32_t numObjects;
 
     FMBObject* objects;
 
     Vec3* mins, *maxes;
 } FMB;
 
-FMB* fmb_from_stream(Stream* stream);
+typedef struct FMBGLDataHeader
+{
+    int32_t index, vertex, normal, texture, color;
+} FMBGLDataHeader;
 
+FMB* fmb_load(FILE* file);
 void fmb_delete(FMB* fmb);
-
-char* ptr_from_fmb(FMB* fmb);

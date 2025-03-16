@@ -1,8 +1,7 @@
 #pragma once
 #include <vector.h>
-#include <fmstream.h>
 #include <common.h>
-#include <stdbool.h>
+#include <stdint.h>
 
 /*
 
@@ -52,59 +51,61 @@ typedef enum FMB2VertexChannelType
 
 typedef struct FMB2Chunk
 {
-    int label;
+    int32_t label;
 
-    size_t length;
+    int32_t length;
 } FMB2Chunk;
 
 typedef struct FMB2VertexChannel
 {
     FMB2VertexChannelType exportedType;
 
-    int dataType, dataSize, numComponents, numOffsets;
+    int32_t dataType, dataSize, numComponents, numOffsets;
 
-    char* data;
+    uint8_t* data;
 
-    unsigned short* keyFrameToOffset;
+    uint16_t* keyFrameToOffset;
 } FMB2VertexChannel;
 
 typedef struct FMB2Model
 {
     char* name;
 
-    int materialIndex, numFaces, numVertices, indexDataType, indexDataSize, numKeyFrames;
+    int32_t materialIndex, numFaces, numVertices, indexDataType, indexDataSize, numKeyFrames;
 
-    char* indices;
+    uint8_t* indices;
 
-    int numChannels;
+    int32_t numChannels;
 
     FMB2VertexChannel* channels;
 
-    int numBoundingOffsets;
+    int32_t numBoundingOffsets;
 
     Vec4* boundingSpheres;
 
     Vec3* mins, *maxes;
 
-    unsigned short* boundingOffsetToKeyFrame;
+    uint16_t* boundingOffsetToKeyFrame;
 } FMB2Model;
 
 typedef struct FMB2Dummy
 {
-    char* name, *frameData;
+    char* name;
+    
+    uint8_t* frameData;
 } FMB2Dummy;
 
 typedef struct FMB2
 {
-    int chunkCount;
+    int32_t numChunks;
 
     float version, offset, scale;
 
-    int numKeyFrames, numFrames;
+    int32_t numKeyFrames, numFrames;
 
-    unsigned short* frameToKeyFrame, *keyFrameToFrameNumber;
+    uint16_t* frameToKeyFrame, *keyFrameToFrameNumber;
 
-    int numMaterials, numModels, numDummies;
+    int32_t numMaterials, numModels, numDummies;
 
     FMB2Model* models;
 
@@ -122,8 +123,5 @@ typedef enum FMB2ChunkType
     BONE = 1701736290, //int32 of bytes for 'bone'
 } FMB2ChunkType;
 
-FMB2* fmb2_from_stream(Stream* stream);
-
+FMB2* fmb2_load(FILE* file);
 void fmb2_delete(FMB2* fmb2);
-
-char* ptr_from_fmb2(FMB2* fmb2);

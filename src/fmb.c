@@ -1,8 +1,6 @@
 #include <fmb.h>
 #include <common.h>
 
-#define STREAM_VAL(v, t) fmb->v = stream_##t(stream)
-
 FMBDataType num_to_data_type(int num)
 {
     switch (num)
@@ -27,141 +25,146 @@ int data_size(FMBDataType dataType)
     }
 }
 
-FMB* fmb_from_stream(Stream* stream)
+FMB* fmb_load(FILE* file)
 {
     FMB* fmb = (FMB*)malloc(sizeof(FMB));
-    STREAM_VAL(version, float);
+    FREADS(fmb->version);
 
-    #define NEXT_TYPE(s) fmb->s##Type = num_to_data_type(stream_int(stream)); fmb->s##Size = data_size(fmb->s##Type)
+    FMBGLDataHeader* glData = (FMBGLDataHeader*)malloc(sizeof(FMBGLDataHeader));
+    FREAD(glData, sizeof(FMBGLDataHeader));
 
-    NEXT_TYPE(indexData);  NEXT_TYPE(vertexData);
-    NEXT_TYPE(normalData); NEXT_TYPE(textureData);
-    NEXT_TYPE(colorData);
+    #define NEXT_TYPE(s) fmb->s##DataType = num_to_data_type(glData->s);\
+    fmb->s##DataSize = data_size(fmb->s##DataType)
+
+    NEXT_TYPE(index  );
+    NEXT_TYPE(vertex );
+    NEXT_TYPE(normal );
+    NEXT_TYPE(texture);
+    NEXT_TYPE(color  );
+
+    DEBUGF("index type %i\n", fmb->indexDataType);
+    DEBUGF("vertex type %i\n", fmb->vertexDataType);
+    DEBUGF("normal type %i\n", fmb->normalDataType);
+    DEBUGF("texture type %i\n", fmb->textureDataType);
+    DEBUGF("color type %i\n", fmb->colorDataType);
 
     #undef NEXT_TYPE
 
-    STREAM_VAL(offset, float);
-    STREAM_VAL(scale, float);
+    free(glData);
+
+    FREADS(fmb->offset);
+    FREADS(fmb->scale);
+    FREADS(fmb->numFrames);
+    FREADS(fmb->numMaterials);
 
     fmb->inverseScale = 1.0f / fmb->scale;
 
-    STREAM_VAL(numFrames, int);
-    STREAM_VAL(numMaterials, int);
+    CALLOC(fmb->materials, fmb->numMaterials, FMBMaterial);
 
-    fmb->materials = CALLOC(FMBMaterial, fmb->numMaterials);
-
-    FOREACH (i, fmb->numMaterials)
+    for (int i = 0; i < fmb->numMaterials; i++)
     {
-        FMBMaterial* material = &(fmb->materials[i]);
+        fmb->materials[i].name = freadnts(file);
+        fmb->materials[i].texturePath = freadnts(file);
 
-        material->name = stream_string(stream);
-        material->texturePath = stream_string(stream);
-
-        #define NEXT_COLOR(cl) OpaqueColor* cl = STREAM_DATA(OpaqueColor); material->cl = *cl; free(cl)
-
-        NEXT_COLOR(ambient);
-        NEXT_COLOR(diffuse);
-        NEXT_COLOR(specular);
-
-        #undef NEXT_COLOR
-
-        material->glossiness = stream_float(stream);
+        FREADS(fmb->materials[i].ambient);
+        FREADS(fmb->materials[i].diffuse);
+        FREADS(fmb->materials[i].specular);
+        FREADS(fmb->materials[i].glossiness);
     }
 
-    STREAM_VAL(numObjects, int);
-    fmb->objects = CALLOC(FMBObject, fmb->numObjects);
+    FREADS(fmb->numObjects);
+    CALLOC(fmb->objects, fmb->numObjects, FMBObject);
 
-    FOREACH (i, fmb->numObjects)
+    for (int i = 0; i < fmb->numObjects; i++)
     {
-        FMBObject* object = &(fmb->objects[i]);
-
-        #define NEXT_DATA(v, t) object->v = stream_##t(stream)
-
-        NEXT_DATA(name, string);
-        NEXT_DATA(materialIndex, int);
-
-        NEXT_DATA(hasNormals, short_bool);
-        NEXT_DATA(hasTextures, short_bool);
-        NEXT_DATA(hasColors, short_bool);
-
-        NEXT_DATA(numKeyFrames, int);
-        object->frames = STREAM_ARR(FMBFrame, object->numKeyFrames);
-
-        NEXT_DATA(numFaces, int);
-        object->indices = STREAM_ARR(char, object->numFaces * fmb->indexDataSize * 3);
+        fmb->objects[i].name = freadnts(file);
         
-        FMBFrame* lastFrame = &(object->frames[object->numKeyFrames - 1]);
-        NEXT_DATA(numVertices, int);
+        FREADS(fmb->objects[i].materialIndex);
 
-        object->vertices = STREAM_ARR(char, object->numVertices * 3 * fmb->vertexDataSize * (lastFrame->verticesOffset + 1));
+        FREADS(fmb->objects[i].hasNormals);
+        FREADS(fmb->objects[i].hasTextures);
+        FREADS(fmb->objects[i].hasColors);
 
-        if (object->hasNormals)  object->normals  = STREAM_ARR(char, object->numVertices * 3 * fmb->normalDataSize * (lastFrame->verticesOffset + 1));
-        if (object->hasTextures) object->textures = STREAM_ARR(char, object->numVertices * 2 * fmb->textureDataSize);
-        if (object->hasColors)   object->colors   = STREAM_ARR(char, object->numVertices * 4 * fmb->colorDataSize);
+        FREADS(fmb->objects[i].numKeyFrames);
 
-        object->centers = STREAM_ARR(Vec3, object->numKeyFrames);
-        object->radiuses = STREAM_ARR(float, object->numKeyFrames);
+        FREADP(fmb->objects[i].frames, sizeof(FMBFrame), fmb->objects[i].numKeyFrames);
 
-        object->keyFrameLookUp = STREAM_ARR(short, (fmb->numFrames + 1));
+        FREADS(fmb->objects[i].numFaces);
+        FREADA(fmb->objects[i].indices, fmb->objects[i].numFaces * fmb->indexDataSize * 3);
+        
+        FMBFrame lastFrame = fmb->objects[i].frames[fmb->objects[i].numKeyFrames - 1];
+        FREADS(fmb->objects[i].numVertices);
 
-        #undef NEXT_DATA
+        int vertexCount = fmb->objects[i].numVertices * 3 * (lastFrame.verticesOffset + 1);
+
+        FREADA(fmb->objects[i].vertices, vertexCount * fmb->vertexDataSize);
+
+        fpos_t pos;
+        fgetpos(file, &pos);
+
+        if (fmb->objects[i].hasNormals)
+        {
+            FREADA(fmb->objects[i].normals, vertexCount * fmb->normalDataSize);
+        }
+
+        if (fmb->objects[i].hasTextures)
+        {
+            FREADA(fmb->objects[i].textures, fmb->objects[i].numVertices * 2 * fmb->textureDataSize);
+        }
+
+        if (fmb->objects[i].hasColors)
+        {
+            FREADA(fmb->objects[i].colors, fmb->objects[i].numVertices * 4 * fmb->colorDataSize);
+        }
+
+        FREADP(fmb->objects[i].centers, sizeof(Vec3), fmb->objects[i].numKeyFrames);
+        FREADP(fmb->objects[i].radiuses, sizeof(float), fmb->objects[i].numKeyFrames);
+
+        FREADP(fmb->objects[i].keyFrameLookUp, sizeof(uint16_t), (fmb->numFrames + 1));
     }
 
-    fmb->mins = STREAM_ARR(Vec3, fmb->numFrames);
-    fmb->maxes = STREAM_ARR(Vec3, fmb->numFrames);
-
-    #undef STREAM_VAL
+    FREADP(fmb->mins, sizeof(Vec3), fmb->numFrames);
+    FREADP(fmb->maxes, sizeof(Vec3), fmb->numFrames);
 
     return fmb;
 }
 
-void fmb_material_delete(FMBMaterial material)
-{
-    FREE(material.name);
-    FREE(material.texturePath);
-}
-
-void fmb_object_delete(FMBObject object)
-{
-    FREE(object.name);
-    FREE(object.frames);
-    
-    FREE(object.indices);
-    FREE(object.vertices);
-    FREE(object.normals);
-    FREE(object.textures);
-    FREE(object.colors);
-
-    FREE(object.centers);
-    FREE(object.radiuses);
-    FREE(object.keyFrameLookUp);
-}
-
 void fmb_delete(FMB* fmb)
 {
-    if (fmb != NULL)
+    if (fmb->numMaterials > 0)
     {
-        if (fmb->numMaterials > 0)
+        for (int i = 0; i < fmb->numMaterials; i++)
         {
-            FOREACH (i, fmb->numMaterials)
-            {
-                fmb_material_delete(fmb->materials[i]);
-            }
-
-            free(fmb->materials);
+            FREE(fmb->materials[i].name);
+            FREE(fmb->materials[i].texturePath);
         }
 
-        if (fmb->numObjects > 0)
-        {
-            FOREACH (i, fmb->numObjects)
-            {
-                fmb_object_delete(fmb->objects[i]);
-            }
-
-            free(fmb->objects);
-        }
-
-        FREE(fmb->mins);
-        FREE(fmb->maxes);
+        FREE(fmb->materials);
     }
+
+    if (fmb->numObjects > 0)
+    {
+        for (int i = 0; i < fmb->numObjects; i++)
+        {
+            FREE(fmb->objects[i].name);
+            FREE(fmb->objects[i].frames);
+
+            FREE(fmb->objects[i].indices);
+            FREE(fmb->objects[i].vertices);
+            FREE(fmb->objects[i].normals);
+            FREE(fmb->objects[i].textures);
+            FREE(fmb->objects[i].colors);
+
+            FREE(fmb->objects[i].centers);
+            FREE(fmb->objects[i].radiuses);
+            FREE(fmb->objects[i].keyFrameLookUp);
+        }
+
+        FREE(fmb->objects);
+    }
+
+    FREE(fmb->mins);
+    FREE(fmb->maxes);
+
+    FREE(fmb);
 }

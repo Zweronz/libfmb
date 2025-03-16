@@ -1,5 +1,4 @@
 #pragma once
-#include <fmstream.h>
 #include <common.h>
 
 #define UMB_EXT 6450549 //int32 for umb\0 (only for internal use, the umb format has no header)

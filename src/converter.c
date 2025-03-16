@@ -65,7 +65,7 @@ Model* convert_model(Model* model, int ext)
 {
     if (model->header == ext)
     {
-        debug("source and destination are the same format! this is not allowed!\n");
+        DEBUG("source and destination are the same format! this is not allowed!\n");
         return NULL;
     }
 

@@ -1,7 +1,6 @@
 #pragma once
-#include <fmstream.h>
 #include <vector.h>
-#include <stdbool.h>
+#include <stdint.h>
 
 /*
 
@@ -19,11 +18,6 @@ Status: DONE
 
 */
 
-#define UMB_FRAME_SIZE 24
-#define UMB_OBJECT_SIZE 12
-#define UMB_MATERIAL_SIZE 42
-#define UMB_SIZE 8
-
 typedef struct UMBVector3
 {
     float x, z, y;
@@ -32,34 +26,34 @@ typedef struct UMBVector3
 typedef struct UMBVertex
 {
     UMBVector3 vertex, normal;
-} UMBVertex;
+} UMBVertex; //vertex/normals are interleaved
 
 typedef struct UMBFrame
 {
-    int number;
+    int32_t number;
 
-    bool usePreviousIndexData, usePreviousTextureData;
+    uint16_t usePreviousIndexData, usePreviousTextureData;
 
-    int numFaces;
+    int32_t numFaces;
 
-    unsigned short* indices;
+    uint16_t* indices;
 
-    int numTextures;
+    int32_t numTextures;
 
     Vec2* textures;
 
-    int numColors;
+    int32_t numColors;
 
     OpaqueColor32* colors;
 
-    int numVertices;
+    int32_t numVertices;
 
     UMBVertex* vertex;
 } UMBFrame;
 
 typedef struct UMBObject
 {
-    int materialIndex, numKeyFrames, numAnimationFrames;
+    int32_t materialIndex, numKeyFrames, numAnimationFrames;
 
     UMBFrame* frames;
 } UMBObject;
@@ -68,8 +62,6 @@ typedef struct UMBMaterial
 {
     char* name, *texturePath, *textureBase;
 
-    bool hasTexture;
-
     OpaqueColor ambient, diffuse, specular;
 
     float glossiness;
@@ -77,19 +69,14 @@ typedef struct UMBMaterial
 
 typedef struct UMB
 {
-    int numMaterials;
+    int32_t numMaterials;
 
     UMBMaterial* materials;
 
-    int numObjects;
+    int32_t numObjects;
 
     UMBObject* objects;
 } UMB;
 
-UMB* umb_from_stream(Stream* stream);
-
+UMB* umb_load(FILE* file);
 void umb_delete(UMB* umb);
-
-char* ptr_from_umb(UMB* umb);
-
-size_t umb_calc_size(UMB* umb);

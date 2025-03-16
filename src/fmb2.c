@@ -1,56 +1,49 @@
 #include <fmb2.h>
 
 #define CHUNK_BUF_SIZE 10   //the chunk buffer isn't based on chunk count, it's apparently just a fixed value that fills with empty entries past the chunk count
-#define CHUNK_SIZE 8        //int32*2 (4 char label, chunk len)
 
-void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
+//pre-chunk versions ranging 1.0-1.0.2
+void fmb2_old_load(FMB2* fmb2, FILE* file)
 {
-    fmb2->offset       = stream_float(stream);
-    fmb2->scale        = stream_float(stream);
+    FREADS(fmb2->offset);
+    FREADS(fmb2->scale);
+    FREADS(fmb2->numKeyFrames);
+    FREADS(fmb2->numFrames);
 
-    fmb2->numKeyFrames = stream_int(stream);
-    fmb2->numFrames    = stream_int(stream);
+    FREADP(fmb2->frameToKeyFrame,       sizeof(uint16_t), fmb2->numFrames);
+    FREADP(fmb2->keyFrameToFrameNumber, sizeof(uint16_t), fmb2->numKeyFrames);
+    
+    FREADS(fmb2->numMaterials);
+    FREADS(fmb2->numModels);
 
-    fmb2->frameToKeyFrame       = STREAM_ARR(unsigned short, fmb2->numFrames);
-    fmb2->keyFrameToFrameNumber = STREAM_ARR(unsigned short, fmb2->numKeyFrames);
+    CALLOC(fmb2->models, fmb2->numModels, FMB2Model);
 
-    fmb2->numMaterials = stream_int(stream);
-    fmb2->numModels    = stream_int(stream);
-
-    fmb2->models = CALLOC(FMB2Model, fmb2->numModels);
-
-    FOREACH (i, fmb2->numModels)
+    for (int i = 0; i < fmb2->numModels; i++)
     {
-        fmb2->models[i].name          = stream_string(stream);
+        fmb2->models[i].name = freadnts(file);
 
-        fmb2->models[i].materialIndex = stream_int(stream);
-        fmb2->models[i].numFaces      = stream_int(stream);
+        FREADS(fmb2->models[i].materialIndex);
+        FREADS(fmb2->models[i].numFaces);
+        FREADS(fmb2->models[i].numVertices);
+        FREADS(fmb2->models[i].indexDataType);
+        FREADS(fmb2->models[i].indexDataSize);
 
-        fmb2->models[i].numVertices   = stream_int(stream);
+        FREADP(fmb2->models[i].indices, fmb2->models[i].indexDataSize * 3, fmb2->models[i].numFaces);
+        FREADS(fmb2->models[i].numChannels);
 
-        fmb2->models[i].indexDataType = stream_int(stream);
-        fmb2->models[i].indexDataSize = stream_int(stream);
-
-        fmb2->models[i].indices       = (char*)stream_data(stream, fmb2->models[i].numFaces * fmb2->models[i].indexDataSize * 3);
-        
-        fmb2->models[i].numChannels   = stream_int(stream);
-
-        fmb2->models[i].channels = CALLOC(FMB2VertexChannel, fmb2->models[i].numChannels);
+        CALLOC(fmb2->models[i].channels, fmb2->models[i].numChannels, FMB2VertexChannel);
         fmb2->models[i].numBoundingOffsets = 0;
 
-        FOREACH (j, fmb2->models[i].numChannels)
+        for (int j = 0; j < fmb2->models[i].numChannels; j++)
         {
-            fmb2->models[i].channels[j].exportedType  = (FMB2VertexChannelType)stream_int(stream);
+            FREADS(fmb2->models[i].channels[j].exportedType);
+            FREADS(fmb2->models[i].channels[j].dataType);
+            FREADS(fmb2->models[i].channels[j].dataSize);
+            FREADS(fmb2->models[i].channels[j].numComponents);
+            FREADS(fmb2->models[i].channels[j].numOffsets);
 
-            fmb2->models[i].channels[j].dataType      = stream_int(stream);
-            fmb2->models[i].channels[j].dataSize      = stream_int(stream);
-
-            fmb2->models[i].channels[j].numComponents = stream_int(stream);
-            fmb2->models[i].channels[j].numOffsets    = stream_int(stream);
-
-            fmb2->models[i].channels[j].data = (char*)stream_data(stream, fmb2->models[i].numVertices * fmb2->models[i].channels[j].dataSize * fmb2->models[i].channels[j].numComponents * fmb2->models[i].channels[j].numOffsets);
-
-            fmb2->models[i].channels[j].keyFrameToOffset = STREAM_ARR(unsigned short, fmb2->numKeyFrames);
+            FREADA(fmb2->models[i].channels[j].data, fmb2->models[i].numVertices * fmb2->models[i].channels[j].dataSize * fmb2->models[i].channels[j].numComponents * fmb2->models[i].channels[j].numOffsets);
+            FREADP(fmb2->models[i].channels[j].keyFrameToOffset, sizeof(uint16_t), fmb2->numKeyFrames);
 
             if (fmb2->models[i].channels[j].exportedType == Position)
             {
@@ -58,28 +51,28 @@ void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
             }
         }
 
-        fmb2->models[i].boundingSpheres = STREAM_ARR(Vec4, fmb2->models[i].numBoundingOffsets);
-        fmb2->models[i].mins            = STREAM_ARR(Vec3, fmb2->models[i].numBoundingOffsets);
-        fmb2->models[i].maxes           = STREAM_ARR(Vec3, fmb2->models[i].numBoundingOffsets);
+        FREADP(fmb2->models[i].boundingSpheres, sizeof(Vec4), fmb2->models[i].numBoundingOffsets);
+        FREADP(fmb2->models[i].mins,            sizeof(Vec3), fmb2->models[i].numBoundingOffsets);
+        FREADP(fmb2->models[i].maxes,           sizeof(Vec3), fmb2->models[i].numBoundingOffsets);
     }
 
 
     if (fmb2->version >= 1.01f)
     {
-        fmb2->numDummies = stream_int(stream);
-        fmb2->dummies = CALLOC(FMB2Dummy, fmb2->numDummies);
+        FREADS(fmb2->numDummies);
+        CALLOC(fmb2->dummies, fmb2->numDummies, FMB2Dummy);
 
-        FOREACH (i, fmb2->numDummies)
+        for (int i = 0; i < fmb2->numDummies; i++)
         {
-            fmb2->dummies[i].name = stream_string(stream);
+            fmb2->dummies[i].name = freadnts(file);
 
             if (fmb2->version >= 1.02f)
             {
-                fmb2->dummies[i].frameData = (char*)stream_data(stream, 24 * fmb2->numKeyFrames); //24 = Vec3 pos, Vec3 rot
+                FREADP(fmb2->dummies[i].frameData, 24, fmb2->numKeyFrames); //24 = Vec3 pos, Vec3 rot
             }
             else
             {
-                fmb2->dummies[i].frameData = (char*)stream_data(stream, sizeof(Vec3) * fmb2->numKeyFrames);
+                FREADP(fmb2->dummies[i].frameData, sizeof(Vec3), fmb2->numKeyFrames);
             }
         }
     }
@@ -87,146 +80,142 @@ void fmb2_old_from_stream(FMB2* fmb2, Stream* stream)
     //4 bytes of padding (00 00 00 00) at the bottom of the file?? (sometimes)
 }
 
-void fmb2_read_data(Stream* stream, FMB2* fmb2, size_t length)
+void fmb2_read_data(FILE* file, FMB2* fmb2, int32_t length)
 {
-    fmb2->offset       = stream_float(stream);
-    fmb2->scale        = stream_float(stream);
-    fmb2->numMaterials = stream_int(stream);
-    fmb2->numModels    = stream_int(stream);
-    fmb2->numKeyFrames = stream_int(stream);
-    fmb2->numFrames    = stream_int(stream);
+    FREADS(fmb2->offset);
+    FREADS(fmb2->scale);
 
-    fmb2->models = CALLOC(FMB2Model, fmb2->numModels);
+    FREADS(fmb2->numMaterials);
+    FREADS(fmb2->numModels);
 
-    FOREACH (i, fmb2->numModels)
+    FREADS(fmb2->numKeyFrames);
+    FREADS(fmb2->numFrames);
+
+    CALLOC(fmb2->models, fmb2->numModels, FMB2Model);
+
+    for (int i = 0; i < fmb2->numModels; i++)
     {
-        FMB2Model* model = &(fmb2->models[i]);
+        fmb2->models[i].name = freadnts(file);
+        
+        FREADS(fmb2->models[i].materialIndex);
+        FREADS(fmb2->models[i].numFaces     );
+        FREADS(fmb2->models[i].numVertices  );
 
-        model->name = stream_string(stream);
+        FREADS(fmb2->models[i].numKeyFrames );
+        FREADS(fmb2->models[i].indexDataSize);
+        FREADS(fmb2->models[i].numChannels  );
 
-        model->materialIndex = stream_int(stream);
-        model->numFaces      = stream_int(stream);
-        model->numVertices   = stream_int(stream);
-        model->numKeyFrames  = stream_int(stream);
-        model->indexDataSize = stream_int(stream);
-        model->numChannels   = stream_int(stream);
+        CALLOC(fmb2->models[i].channels, fmb2->models[i].numChannels, FMB2VertexChannel);
 
-        model->channels = CALLOC(FMB2VertexChannel, model->numChannels);
-
-        FOREACH (j, model->numChannels)
+        for (int j = 0; j < fmb2->models[i].numChannels; j++)
         {
-            model->channels[j].exportedType = (FMB2VertexChannelType)stream_int(stream);
-
-            model->channels[j].dataType      = stream_int(stream);
-            model->channels[j].dataSize      = stream_int(stream);
-            model->channels[j].numComponents = stream_int(stream);
-            model->channels[j].numOffsets    = stream_int(stream);
+            FREADS(fmb2->models[i].channels[j].exportedType);
+            FREADS(fmb2->models[i].channels[j].dataType);
+            FREADS(fmb2->models[i].channels[j].dataSize);
+            FREADS(fmb2->models[i].channels[j].numComponents);
+            FREADS(fmb2->models[i].channels[j].numOffsets);
         }
     }
 }
 
-void fmb2_read_anim(Stream* stream, FMB2* fmb2, size_t length)
+void fmb2_read_anim(FILE* file, FMB2* fmb2, int32_t length)
 {
-    fmb2->frameToKeyFrame       = STREAM_ARR(unsigned short, fmb2->numFrames);
-    fmb2->keyFrameToFrameNumber = STREAM_ARR(unsigned short, fmb2->numKeyFrames);
+    FREADP(fmb2->frameToKeyFrame,       sizeof(uint16_t), fmb2->numFrames);
+    FREADP(fmb2->keyFrameToFrameNumber, sizeof(uint16_t), fmb2->numKeyFrames);
 }
 
-void fmb2_read_bnds(Stream* stream, FMB2* fmb2, size_t length)
+void fmb2_read_bnds(FILE* file, FMB2* fmb2, int32_t length)
 {
-    FOREACH (i, fmb2->numModels)
+    for (int i = 0; i < fmb2->numModels; i++)
     {
-        fmb2->models[i].numBoundingOffsets = stream_int(stream);
+        FREADS(fmb2->models[i].numBoundingOffsets);
     }
 
-    FOREACH (i, fmb2->numModels)
+    for (int i = 0; i < fmb2->numModels; i++)
     {
-        fmb2->models[i].boundingOffsetToKeyFrame = STREAM_ARR(unsigned short, fmb2->numKeyFrames);
+        FREADP(fmb2->models[i].boundingOffsetToKeyFrame, sizeof(uint16_t), fmb2->numKeyFrames);
     }
 
-    FOREACH (i, fmb2->numModels)
+    for (int i = 0; i < fmb2->numModels; i++)
     {
         //idk if this is right, they might be interleaved
-        fmb2->models[i].boundingSpheres = STREAM_ARR(Vec4, fmb2->models[i].numBoundingOffsets);
-        fmb2->models[i].mins            = STREAM_ARR(Vec3, fmb2->models[i].numBoundingOffsets);
-        fmb2->models[i].maxes           = STREAM_ARR(Vec3, fmb2->models[i].numBoundingOffsets);
+        FREADP(fmb2->models[i].boundingSpheres, sizeof(Vec4), fmb2->models[i].numBoundingOffsets);
+        FREADP(fmb2->models[i].mins,            sizeof(Vec3), fmb2->models[i].numBoundingOffsets);
+        FREADP(fmb2->models[i].maxes,           sizeof(Vec3), fmb2->models[i].numBoundingOffsets);
     }
 }
 
-void fmb2_read_dums(Stream* stream, FMB2* fmb2, size_t length)
+void fmb2_read_dums(FILE* file, FMB2* fmb2, int32_t length)
 {
-    fmb2->numDummies = stream_int(stream);
-    fmb2->dummies    = CALLOC(FMB2Dummy, fmb2->numDummies);
+    FREADS(fmb2->numDummies);
+    CALLOC(fmb2->dummies, fmb2->numDummies, FMB2Dummy);
 
-    FOREACH (i, fmb2->numDummies)
+    for (int i = 0; i < fmb2->numDummies; i++)
     {
-        fmb2->dummies[i].name = stream_string(stream);
+        fmb2->dummies[i].name = freadnts(file);
     }
 
-    FOREACH (i, fmb2->numDummies)
+    for (int i = 0; i < fmb2->numDummies; i++)
     {
-        fmb2->dummies[i].frameData = (char*)stream_data(stream, 24 * fmb2->numKeyFrames);
-    }
-}
-
-void fmb2_read_face(Stream* stream, FMB2* fmb2, size_t length)
-{
-    FOREACH (i, fmb2->numModels)
-    {
-        fmb2->models[i].indices = STREAM_ARR(char, fmb2->models[i].numFaces * fmb2->models[i].indexDataSize * 3);
+        FREADP(fmb2->dummies[i].frameData, 24, fmb2->numKeyFrames); //24 = Vec3 pos, Vec3 rot
     }
 }
 
-void fmb2_read_chnd(Stream* stream, FMB2* fmb2, size_t length)
+void fmb2_read_face(FILE* file, FMB2* fmb2, int32_t length)
 {
-    FOREACH (i, fmb2->numModels)
+    for (int i = 0; i < fmb2->numModels; i++)
     {
-        FOREACH (j, fmb2->models[i].numChannels)
+        FREADP(fmb2->models[i].indices, fmb2->models[i].indexDataSize * 3, fmb2->models[i].numFaces);
+    }
+}
+
+void fmb2_read_chnd(FILE* file, FMB2* fmb2, int32_t length)
+{
+    for (int i = 0; i < fmb2->numModels; i++)
+    {
+        for (int j = 0; j < fmb2->models[i].numChannels; j++)
         {
-            fmb2->models[i].channels[j].data = STREAM_ARR(char, fmb2->models[i].numVertices * fmb2->models[i].channels[j].dataSize * fmb2->models[i].channels[j].numComponents * fmb2->models[i].channels[j].numOffsets);
-            fmb2->models[i].channels[j].keyFrameToOffset = STREAM_ARR(unsigned short, fmb2->numKeyFrames);
+            FREADA(fmb2->models[i].channels[j].data, fmb2->models[i].numVertices * fmb2->models[i].channels[j].dataSize * fmb2->models[i].channels[j].numComponents * fmb2->models[i].channels[j].numOffsets);
+            FREADP(fmb2->models[i].channels[j].keyFrameToOffset, sizeof(uint16_t), fmb2->numKeyFrames);
         }
     }
 }
 
-void fmb2_read_bone(Stream* stream, FMB2* fmb2, size_t length)
+void fmb2_read_bone(FILE* file, FMB2* fmb2, int32_t length)
 {
-    ADVANCE(length);
+    fadvance((size_t)length, file);
 }
 
-FMB2* fmb2_from_stream(Stream* stream)
+FMB2* fmb2_load(FILE* file)
 {
     FMB2* fmb2 = (FMB2*)malloc(sizeof(FMB2));
-    fmb2->version = stream_float(stream);
+    FREADS(fmb2->version);
 
     if (fmb2->version < 1.03f)
     {
-        fmb2_old_from_stream(fmb2, stream);
+        fmb2_old_load(fmb2, file);
     }
+    //post-chunk versions ranging 1.0.3-1.1
     else
     {
-        fmb2->chunkCount = stream_int(stream);
+        FREADS(fmb2->numChunks);
 
-        FMB2Chunk* chunks = CALLOC(FMB2Chunk, fmb2->chunkCount);
-
-        FOREACH (i, fmb2->chunkCount)
-        {
-            chunks[i].label  = stream_int(stream);
-            chunks[i].length = stream_int(stream);
-        }
+        FMB2Chunk* chunks;
+        FREADP(chunks, sizeof(FMB2Chunk), fmb2->numChunks);
 
         //skip the remaining unused chunk buffers
-        if (fmb2->chunkCount < 10)
+        if (fmb2->numChunks < 10)
         {
-            ADVANCE((CHUNK_BUF_SIZE - fmb2->chunkCount) * CHUNK_SIZE);
+            fadvance((CHUNK_BUF_SIZE - fmb2->numChunks) * sizeof(FMB2Chunk), file);
         }
-        else if (fmb2->chunkCount > 10)
+        else if (fmb2->numChunks > 10)
         {
-            debug("fmb2 chunk count surpasses the chunk buffer (10), unexpected things may happen!\n");
+            DEBUG("fmb2 chunk count surpasses the chunk buffer (10), unexpected things may happen!\n");
         }
 
-        #define CASE(t, tl) case t: fmb2_read_##tl(stream, fmb2, chunks[i].length); break
+        #define CASE(t, tl) case t: fmb2_read_##tl(file, fmb2, chunks[i].length); break
 
-        FOREACH (i, fmb2->chunkCount)
+        for (int i = 0; i < fmb2->numChunks; i++)
         {
             switch (chunks[i].label)
             {
@@ -250,44 +239,41 @@ FMB2* fmb2_from_stream(Stream* stream)
 
 void fmb2_delete(FMB2* fmb2)
 {
-    if (fmb2 != NULL)
+    FREE(fmb2->frameToKeyFrame);
+    FREE(fmb2->keyFrameToFrameNumber);
+
+    for (int i = 0; i < fmb2->numModels; i++)
     {
-        FREE(fmb2->frameToKeyFrame);
-        FREE(fmb2->keyFrameToFrameNumber);
+        FREE(fmb2->models[i].name);
+        FREE(fmb2->models[i].indices);
 
-        FOREACH (i, fmb2->numModels)
+        for (int j = 0; j < fmb2->models[i].numChannels; j++)
         {
-            FREE(fmb2->models[i].name);
-            FREE(fmb2->models[i].indices);
-
-            FOREACH (j, fmb2->models[i].numChannels)
-            {
-                FREE(fmb2->models[i].channels[j].data);
-                FREE(fmb2->models[i].channels[j].keyFrameToOffset);
-            }
-
-            FREE(fmb2->models[i].channels);
-
-            FREE(fmb2->models[i].boundingSpheres);
-            FREE(fmb2->models[i].mins);
-            FREE(fmb2->models[i].maxes);
-
-            FREE(fmb2->models[i].boundingOffsetToKeyFrame);
+            FREE(fmb2->models[i].channels[j].data);
+            FREE(fmb2->models[i].channels[j].keyFrameToOffset);
         }
 
-        FREE(fmb2->models);
+        FREE(fmb2->models[i].channels);
 
-        if (fmb2->version > 1.01f)
-        {
-            FOREACH (i, fmb2->numDummies)
-            {
-                FREE(fmb2->dummies[i].name);
-                FREE(fmb2->dummies[i].frameData);
-            }
+        FREE(fmb2->models[i].boundingSpheres);
+        FREE(fmb2->models[i].mins);
+        FREE(fmb2->models[i].maxes);
 
-            FREE(fmb2->dummies);
-        }
-
-        free(fmb2);
+        FREE(fmb2->models[i].boundingOffsetToKeyFrame);
     }
+
+    FREE(fmb2->models);
+
+    if (fmb2->version > 1.01f)
+    {
+        for (int i = 0; i < fmb2->numDummies; i++)
+        {
+            FREE(fmb2->dummies[i].name);
+            FREE(fmb2->dummies[i].frameData);
+        }
+
+        FREE(fmb2->dummies);
+    }
+
+    FREE(fmb2);
 }

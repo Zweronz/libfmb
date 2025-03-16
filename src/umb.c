@@ -2,190 +2,108 @@
 #include <malloc.h>
 #include <common.h>
 
-UMB* umb_from_stream(Stream* stream)
+UMB* umb_load(FILE* file)
 {
-    #define STREAM_VAL(v, t) umb->v = stream_##t(stream)
-
     UMB* umb = (UMB*)malloc(sizeof(UMB));
+    FREADS(umb->numMaterials);
 
-    STREAM_VAL(numMaterials, int);
-    umb->materials = CALLOC(UMBMaterial, umb->numMaterials);
+    CALLOC(umb->materials, umb->numMaterials, UMBMaterial);
 
-    FOREACH (i, umb->numMaterials)
+    for (int i = 0; i < umb->numMaterials; i++)
     {
-        #define NEXT_STRING(v) umb->materials[i].v = stream_string(stream)
+        umb->materials[i].name = freadnts(file);
+        umb->materials[i].texturePath = freadnts(file);
+        umb->materials[i].textureBase = freadnts(file);
 
-        NEXT_STRING(name);
-        NEXT_STRING(texturePath);
-        NEXT_STRING(textureBase);
-
-        #undef NEXT_STRING
-
-        #define NEXT_COLOR(cl) OpaqueColor* cl = STREAM_DATA(OpaqueColor); umb->materials[i].cl = *cl; free(cl)
-
-        NEXT_COLOR(ambient);
-        NEXT_COLOR(diffuse);
-        NEXT_COLOR(specular);
-
-        #undef NEXT_COLOR
-
-        umb->materials[i].glossiness = stream_float(stream);
+        FREADS(umb->materials[i].ambient);
+        FREADS(umb->materials[i].diffuse);
+        FREADS(umb->materials[i].specular);
+        FREADS(umb->materials[i].glossiness);
     }
 
-    STREAM_VAL(numObjects, int);
-    umb->objects = CALLOC(UMBObject, umb->numObjects);
+    FREADS(umb->numObjects);
+    CALLOC(umb->objects, umb->numObjects, UMBObject);
 
-    FOREACH (i, umb->numObjects)
+    for (int i = 0; i < umb->numObjects; i++)
     {
-        UMBObject* object = &(umb->objects[i]);
-        #define NEXT_DATA(v, t) object->v = stream_##t(stream)
+        FREADS(umb->objects[i].materialIndex);
+        FREADS(umb->objects[i].numKeyFrames);
+        FREADS(umb->objects[i].numAnimationFrames);
 
-        NEXT_DATA(materialIndex, int);
-        NEXT_DATA(numKeyFrames, int);
-        NEXT_DATA(numAnimationFrames, int);
+        CALLOC(umb->objects[i].frames, umb->objects[i].numKeyFrames, UMBFrame);
 
-        object->frames = CALLOC(UMBFrame, object->numKeyFrames);
-
-        FOREACH (j, object->numKeyFrames)
+        for (int j = 0; j < umb->objects[i].numKeyFrames; j++)
         {
-            UMBFrame* frame = &(object->frames[j]);
+            FREADS(umb->objects[i].frames[j].number);
+            FREADS(umb->objects[i].frames[j].usePreviousIndexData);
+            FREADS(umb->objects[i].frames[j].usePreviousTextureData);
+            FREADS(umb->objects[i].frames[j].numFaces);
 
-            #define FRAME_DATA(v, t) frame->v = stream_##t(stream)
-
-            FRAME_DATA(number, int);
-
-            FRAME_DATA(usePreviousIndexData, short_bool);
-            FRAME_DATA(usePreviousTextureData, short_bool);
-
-            FRAME_DATA(numFaces, int);
-
-            if (frame->numFaces > 0 && !frame->usePreviousIndexData)
+            if (umb->objects[i].frames[j].numFaces > 0 && !umb->objects[i].frames[j].usePreviousIndexData)
             {
-                frame->indices = STREAM_ARR(unsigned short, frame->numFaces * 3);
+                FREADP(umb->objects[i].frames[j].indices, sizeof(int16_t), umb->objects[i].frames[j].numFaces * 3);
             }
 
-            FRAME_DATA(numTextures, int);
+            FREADS(umb->objects[i].frames[j].numTextures);
 
-            if (frame->numTextures > 0 && !frame->usePreviousTextureData)
+            if (umb->objects[i].frames[j].numTextures > 0 && !umb->objects[i].frames[j].usePreviousTextureData)
             {
-                frame->textures = STREAM_ARR(Vec2, frame->numTextures);
+                FREADP(umb->objects[i].frames[j].textures, sizeof(Vec2), umb->objects[i].frames[j].numTextures);
             }
 
-            FRAME_DATA(numColors, int);
+            FREADS(umb->objects[i].frames[j].numColors);
 
-            if (frame->numColors > 0 && !frame->usePreviousTextureData)
+            if (umb->objects[i].frames[j].numColors > 0 && !umb->objects[i].frames[j].usePreviousTextureData)
             {
-                frame->colors = STREAM_ARR(OpaqueColor32, frame->numColors);
+                FREADP(umb->objects[i].frames[j].colors, sizeof(OpaqueColor32), umb->objects[i].frames[j].numColors);
             }
 
-            FRAME_DATA(numVertices, int);
+            FREADS(umb->objects[i].frames[j].numVertices);
 
-            if (frame->numVertices > 0)
+            if (umb->objects[i].frames[j].numVertices > 0)
             {
-                frame->vertex = STREAM_ARR(UMBVertex, frame->numVertices);
+                FREADP(umb->objects[i].frames[j].vertex, sizeof(UMBVertex), umb->objects[i].frames[j].numVertices);
             }
-
-            #undef FRAME_DATA
         }
-
-        #undef NEXT_DATA
     }
-
-    #undef STREAM_VAL
 
     return umb;
 }
 
-void umb_frame_delete(UMBFrame frame)
-{
-    FREE(frame.indices);
-    FREE(frame.textures);
-    FREE(frame.colors);
-    FREE(frame.vertex);
-}
-
-void umb_object_delete(UMBObject object)
-{
-    if (object.numKeyFrames > 0)
-    {
-        FOREACH (i, object.numKeyFrames)
-        {
-            umb_frame_delete(object.frames[i]);
-        }
-
-        free(object.frames);
-    }
-}
-
-void umb_material_delete(UMBMaterial material)
-{
-    FREE(material.name);
-    FREE(material.texturePath);
-    FREE(material.textureBase);
-}
-
 void umb_delete(UMB* umb)
 {
-    if (umb != NULL)
+    if (umb->numMaterials > 0)
     {
-        if (umb->numMaterials > 0)
+        for (int i = 0; i < umb->numMaterials; i++)
         {
-            FOREACH (i, umb->numMaterials)
-            {
-                umb_material_delete(umb->materials[i]);
-            }
-
-            free(umb->materials);
+            FREE(umb->materials[i].name);
+            FREE(umb->materials[i].texturePath);
+            FREE(umb->materials[i].textureBase);
         }
 
-        if (umb->numObjects > 0)
-        {
-            FOREACH (i, umb->numObjects)
-            {
-                umb_object_delete(umb->objects[i]);
-            }
+        FREE(umb->materials);
+    }
 
-            free(umb->objects);
+    if (umb->numObjects > 0)
+    {
+        for (int i = 0; i < umb->numObjects; i++)
+        {
+            if (umb->objects[i].numKeyFrames > 0)
+            {
+                for (int j = 0; j < umb->objects[i].numKeyFrames; j++)
+                {
+                    FREE(umb->objects[i].frames[j].indices);
+                    FREE(umb->objects[i].frames[j].textures);
+                    FREE(umb->objects[i].frames[j].colors);
+                    FREE(umb->objects[i].frames[j].vertex);
+                }
+
+                FREE(umb->objects[i].frames);
+            }
         }
 
-        free(umb);
-    }
-}
-
-size_t umb_calc_size(UMB* umb)
-{
-    size_t size = UMB_SIZE;
-
-    FOREACH (i, umb->numMaterials)
-    {
-        size += strlen(umb->materials[i].name) + 1;
-        size += strlen(umb->materials[i].texturePath) + 1;
-        size += strlen(umb->materials[i].textureBase) + 1;
-
-        size += UMB_MATERIAL_SIZE;
+        FREE(umb->objects);
     }
 
-    FOREACH (i, umb->numObjects)
-    {
-        FOREACH (j, umb->objects[i].numKeyFrames)
-        {
-            if (!umb->objects[i].frames[j].usePreviousIndexData)
-            {
-                size += sizeof(unsigned short) * umb->objects[i].frames[j].numFaces * 3;
-            }
-
-            if (!umb->objects[i].frames[j].usePreviousTextureData)
-            {
-                size += sizeof(Vec2) * umb->objects[i].frames[j].numTextures;
-                size += sizeof(OpaqueColor32) * umb->objects[i].frames[j].numColors;
-            }
-
-            size += 24 /*vertex/normal pairs, better to not multiply it by two*/ * umb->objects[i].frames[j].numVertices;
-            size += UMB_FRAME_SIZE;
-        }
-
-        size += UMB_OBJECT_SIZE;
-    }
-
-    return size;
+    FREE(umb);
 }
