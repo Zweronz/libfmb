@@ -48,7 +48,7 @@ typedef struct UMBFrame
 
     int32_t numVertices;
 
-    UMBVertex* vertex;
+    UMBVector3* vertices, *normals;
 } UMBFrame;
 
 typedef struct UMBObject

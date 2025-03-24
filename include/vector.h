@@ -1,5 +1,4 @@
 #pragma once
-#define byte unsigned char
 
 #include <common.h>
 #define LERP(x, y, t) (x + (y - x) * t)
@@ -36,5 +35,5 @@ typedef struct OpaqueColor
 
 typedef struct OpaqueColor32
 {
-    byte r, g, b;
+    unsigned char r, g, b;
 } OpaqueColor32;

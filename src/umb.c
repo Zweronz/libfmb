@@ -62,7 +62,19 @@ UMB* umb_load(FILE* file)
 
             if (umb->objects[i].frames[j].numVertices > 0)
             {
-                FREADP(umb->objects[i].frames[j].vertex, sizeof(UMBVertex), umb->objects[i].frames[j].numVertices);
+                UMBVertex* vertex;
+                FREADP(vertex, sizeof(UMBVertex), umb->objects[i].frames[j].numVertices);
+
+                umb->objects[i].frames[j].vertices = (UMBVector3*)calloc(umb->objects[i].frames[j].numVertices, sizeof(UMBVector3));
+                umb->objects[i].frames[j].normals  = (UMBVector3*)calloc(umb->objects[i].frames[j].numVertices, sizeof(UMBVector3));
+
+                for (int k = 0; k < umb->objects[i].frames[j].numVertices; k++)
+                {
+                    umb->objects[i].frames[j].vertices[k] = vertex[k].vertex;
+                    umb->objects[i].frames[j].normals[k]  = vertex[k].normal;
+                }
+
+                free(vertex);
             }
         }
     }
@@ -95,7 +107,8 @@ void umb_delete(UMB* umb)
                     FREE(umb->objects[i].frames[j].indices);
                     FREE(umb->objects[i].frames[j].textures);
                     FREE(umb->objects[i].frames[j].colors);
-                    FREE(umb->objects[i].frames[j].vertex);
+                    FREE(umb->objects[i].frames[j].vertices);
+                    FREE(umb->objects[i].frames[j].normals);
                 }
 
                 FREE(umb->objects[i].frames);
